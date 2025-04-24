@@ -1,0 +1,24 @@
+# Allow all crawlers full access to the site
+User-agent: *
+Disallow:
+
+# Block access to sensitive or irrelevant directories
+Disallow: /node_modules/
+Disallow: /api/
+Disallow: /admin/
+Disallow: /config/
+Disallow: /README.md
+Disallow: /LICENSE
+Disallow: /search
+
+# If /static/ contains critical assets (React), allow it
+Allow: /static/
+Allow: /images/
+Allow: /css/
+Allow: /js/
+
+# Optional: Control crawl rate (set lower if you face server load issues)
+Crawl-delay: 10
+
+# Point to sitemap location
+Sitemap: https://yourdomain.com/sitemap.xml
