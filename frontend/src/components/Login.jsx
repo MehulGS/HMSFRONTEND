@@ -38,6 +38,7 @@ const Login = ({ setIsAuthenticated }) => {
 
         localStorage.setItem("token", token);
         setIsAuthenticated(true); // Set authenticated state to true
+        console.log("SomeOne Login")
         toast.success("Login successfully!");
         if (role === "admin") {
           navigate(`/${role}/dashboard`);
@@ -50,7 +51,6 @@ const Login = ({ setIsAuthenticated }) => {
         } else {
           navigate("/home");
         }
-        console.log("SomeOne Login")
       } catch (error) {
         toast.error("Login failed. Please try again.");
         setErrors({ password: authError || "Login failed, try again" });
