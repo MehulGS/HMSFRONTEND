@@ -260,10 +260,10 @@ const PatientManagement = () => {
                     <div className="flex flex-col items-center">
                       <img
                         src={noRecordImage}
-                        alt="No Doctor Found"
+                        alt="No Patient Found"
                         className="w-32 md:w-48 mb-4"
                       />
-                      <p className="text-gray-500">No Doctors Found</p>
+                      <p className="text-gray-500">No Patient Found</p>
                     </div>
                   </td>
                 </tr>
@@ -282,10 +282,10 @@ const PatientManagement = () => {
             </div>
             <div className="text-center mt-8">
               <h2 className="text-lg font-bold text-[#030229] mb-2">
-                Delete Doctor Details?
+                Delete Patient Details?
               </h2>
               <p className="text-gray-600 mb-6">
-                Are you sure you want to delete this doctor details?
+                Are you sure you want to delete this Patient details?
               </p>
 
               <div className="grid grid-cols-2 gap-4 mt-4">
