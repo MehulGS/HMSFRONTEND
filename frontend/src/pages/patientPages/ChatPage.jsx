@@ -133,7 +133,7 @@
 //     if (!newMessage.trim() || !selectedChat) return;
 
 //     try {
-//       const sendMessageResponse = await fetch(`https://46tb8kl9-8000.inc1.devtunnels.ms/api/chats/${selectedChat}/message`, {
+//       const sendMessageResponse = await fetch(`https://b-hms.onrender.com/api/chats/${selectedChat}/message`, {
 //         method: "POST",
 //         headers: {
 //           "Content-Type": "application/json",
@@ -189,7 +189,7 @@
 //                 className={`flex items-center p-2 cursor-pointer ${selectedChatUser && selectedChatUser._id === user._id ? "bg-blue-100" : ""}`}
 //               >
 //                 <img
-//                   src={`https://46tb8kl9-8000.inc1.devtunnels.ms/${user.profileImage || userImage}`}
+//                   src={`https://b-hms.onrender.com/${user.profileImage || userImage}`}
 //                   alt="avatar"
 //                   className="w-12 h-12 rounded-full mr-4"
 //                 />
@@ -214,7 +214,7 @@
 //           <>
 //             {/* Chat Header */}
 //             <div className="flex items-center p-4 bg-white">
-//               <img src={`https://46tb8kl9-8000.inc1.devtunnels.ms/${selectedChatUser.profileImage || userImage}`} alt="avatar" className="w-12 h-12 rounded-full mr-4" />
+//               <img src={`https://b-hms.onrender.com/${selectedChatUser.profileImage || userImage}`} alt="avatar" className="w-12 h-12 rounded-full mr-4" />
 //               <div>
 //                 <h3 className="font-semibold">{selectedChatUser.firstName} {selectedChatUser.lastName}</h3>
 //                 <p className="text-gray-500">Last seen at 9:00 PM</p>

@@ -264,7 +264,7 @@ const Header = ({ activeMenu, onSearch, toggleSidebar }) => {
             <img
               src={
                 profileImage ||
-                "https://46tb8kl9-8000.inc1.devtunnels.ms/default-profile.png"
+                "https://b-hms.onrender.com/default-profile.png"
               }
               alt="user"
               className="w-10 h-10 rounded-full"

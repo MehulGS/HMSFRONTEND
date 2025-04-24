@@ -115,7 +115,7 @@ const AdminEditProfile = () => {
           <img
             src={
               formData.profileImage && !(formData.profileImage instanceof File)
-                ? `https://46tb8kl9-8000.inc1.devtunnels.ms/${formData.profileImage}`
+                ? `https://b-hms.onrender.com/${formData.profileImage}`
                 : userImage
             }
             alt="Profile"

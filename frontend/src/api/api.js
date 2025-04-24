@@ -3,7 +3,7 @@ import axios from "axios";
 
 // Create an Axios instance
 const api = axios.create({
-  baseURL: "https://46tb8kl9-8000.inc1.devtunnels.ms/api", // Replace with your actual backend URL
+  baseURL: "https://b-hms.onrender.com/api", // Replace with your actual backend URL
 });
 
 // Add a request interceptor to include token in requests (if necessary)
