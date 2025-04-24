@@ -22,7 +22,6 @@ const DoctorManagement = () => {
   const token=localStorage.getItem("token")
   const decoded=decode(token)
   const role=decoded.role
-  console.log("first",decoded.role)
 
   // Fetch doctors from API
   useEffect(() => {

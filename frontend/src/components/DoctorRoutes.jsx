@@ -25,6 +25,7 @@ import PendingInvoice from "./PendingInvoice";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import SearchResults from "./SearchResults";
+import EditPatient from "./EditPatient";
 
 const DoctorRoutes = ({ onLogout }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -68,6 +69,7 @@ const DoctorRoutes = ({ onLogout }) => {
               <Route path="/add-new-receiptionist" element={<AddReciptionistForm />} />
               <Route path="/edit-receiptionist/:id" element={<EditReceiptionist />} />
               <Route path="/monitor-billing" element={<MonitorBilling />} />
+              <Route path="/edit-patient/:id" element={<EditPatient />} />
               <Route path="/select-template" element={<SelectTemplate />} />
               <Route path="/payment-process" element={<PaymentProcess />} />
               <Route path="/medicines" element={<Medicines />} />

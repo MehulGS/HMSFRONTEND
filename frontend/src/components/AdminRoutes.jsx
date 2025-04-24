@@ -30,6 +30,7 @@ import BookAppointment from "../pages/patientPages/BookAppointment";
 import RescheduleAppointment from "../pages/patientPages/RescheduleAppointment";
 import Medicines from "./Medicines";
 import NotFound from "../pages/NotFound";
+import EditPatient from "./EditPatient";
 
 
 const AdminRoutes = ({ onLogout }) => {
@@ -78,6 +79,7 @@ const AdminRoutes = ({ onLogout }) => {
               <Route path="/add-new-patient" element={<AddPatientForm />} />
               <Route path="/add-new-receiptionist" element={<AddReciptionistForm />} />
               <Route path="/edit-doctor/:id" element={<EditDoctor />} />
+              <Route path="/edit-patient/:id" element={<EditPatient />} />
               <Route path="/edit-receiptionist/:id" element={<EditReceiptionist />} />
               <Route
                 path="/view-doctor/:id"

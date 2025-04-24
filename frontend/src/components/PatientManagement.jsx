@@ -1,282 +1,312 @@
 import React, { useEffect, useState } from "react";
-import { FaEye, FaSearch, FaUserPlus } from "react-icons/fa";
-import Skeleton from "react-loading-skeleton";
-import api from "../api/api";
-import PatientDetailsModal from "../components/modals/PatientDetailModal";
-import noRecordImage from "../assets/images/NoPatient.png";
-import "react-loading-skeleton/dist/skeleton.css";
 import { Link } from "react-router-dom";
+import Skeleton from "react-loading-skeleton";
+import { FaEye, FaEdit, FaTrash, FaSearch, FaUserPlus } from "react-icons/fa";
+
+import noRecordImage from "../../src/assets/images/Frame 1116602772.png";
+import userImage from "../../src/assets/images/user.png";
+import "react-loading-skeleton/dist/skeleton.css";
 import { jwtDecode } from "jwt-decode";
+import api from "../api/api";
 
 const PatientManagement = () => {
-  const [activeTab, setActiveTab] = useState("Today Appointment");
+  const [doctors, setDoctors] = useState([]);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [isOffCanvasOpen, setIsOffCanvasOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPatient, setSelectedPatient] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [appointments, setAppointments] = useState([]);
-  const [filteredAppointments, setFilteredAppointments] = useState([]);
+  const [doctorToDelete, setDoctorToDelete] = useState(null);
   const [loading, setLoading] = useState(true);
+  const decode = jwtDecode;
+
   const token = localStorage.getItem("token");
-  const decoded = jwtDecode(token);
+  const decoded = decode(token);
   const role = decoded.role;
 
+  // Fetch doctors from API
   useEffect(() => {
-    const fetchAppointments = async () => {
+    const fetchDoctors = async () => {
       try {
-        const response = await api.get("/appointments/appointments", {
+        const token = localStorage.getItem("token");
+        const response = await api.get("/users/patients", {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
           },
         });
-        setAppointments(response.data.data);
-        filterAppointments(response.data.data, activeTab);
+        setDoctors(response.data);
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching appointments:", error);
+        console.error("Error fetching doctors:", error);
         setLoading(false);
       }
     };
-    fetchAppointments();
-  }, [activeTab]);
 
-  console.log(appointments)
+    fetchDoctors();
+  }, []);
 
-  const filterAppointments = (appointments, tab) => {
-    const today = new Date().toISOString().split("T")[0];
-    let filtered = [];
-    switch (tab) {
-      case "Today Appointment":
-        filtered = appointments.filter(
-          (appointment) =>
-            appointment.appointmentDate === today &&
-            appointment.status === "onGoing"
-        );
-        break;
-      case "Upcoming Appointment":
-        filtered = appointments.filter(
-          (appointment) =>
-            appointment.appointmentDate > today &&
-            appointment.status === "pending"
-        );
-        break;
-      case "Previous Appointment":
-        filtered = appointments.filter(
-          (appointment) =>
-            appointment.appointmentDate < today && appointment.status === "done"
-        );
-        break;
-      default:
-        filtered = appointments;
-    }
-    setFilteredAppointments(filtered);
+  const handleViewClick = (doctor) => {
+    setSelectedDoctor(doctor);
+    setIsOffCanvasOpen(true);
   };
 
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-    filterAppointments(appointments, tab);
+  const handleCloseOffCanvas = () => {
+    setIsOffCanvasOpen(false);
+    setSelectedDoctor(null);
   };
 
-  const handleViewPatient = async (appointmentId) => {
-    if (!appointmentId) {
-      console.error("Appointment ID is undefined");
-      return;
-    }
-
-    try {
-      const response = await api.get(`/appointments/${appointmentId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-
-      setSelectedPatient(response.data.data);
-      setIsModalOpen(true);
-    } catch (error) {
-      console.error("Error fetching appointment details:", error);
-    }
+  const handleDeleteClick = (doctorId) => {
+    setDoctorToDelete(doctorId);
+    setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setSelectedPatient(null);
+    setDoctorToDelete(null);
   };
 
-  const filteredAndSearchedAppointments = filteredAppointments.filter(
-    (appointment) =>
-      appointment.patientName.toLowerCase().includes(searchTerm.toLowerCase())
+  const handleConfirmDelete = async () => {
+    if (!doctorToDelete) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      await api.delete(`/users/patients/${doctorToDelete}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      handleCloseModal();
+      setDoctors(doctors.filter((doctor) => doctor._id !== doctorToDelete));
+    } catch (error) {
+      console.log("Error deleting Patient:", error);
+    }
+  };
+
+
+  const filteredDoctors = doctors.filter(
+    (doctor) =>
+      `${doctor.firstName} ${doctor.lastName}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      `${doctor.phoneNumber}`.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const appointmentTypeStyles = {
-    Online: "bg-yellow-100 text-yellow-600",
-    Onsite: "bg-blue-100 text-blue-600",
-  };
-
   return (
-    <div className="min-h-screen">
-      <div className="bg-white p-4 rounded-xl shadow-md">
-        {/* Tabs */}
-        <div className="flex flex-wrap space-x-2 mb-4 border-b">
-          {[
-            "Today Appointment",
-            "Upcoming Appointment",
-            "Previous Appointment",
-          ].map((tab) => (
-            <button
-              key={tab}
-              className={`py-2 px-4 ${
-                activeTab === tab
-                  ? "border-b-2 border-[#0eabeb] text-[#0eabeb]"
-                  : "text-[#667080]"
-              }`}
-              onClick={() => handleTabChange(tab)}
+    <div className="min-h-100">
+      <div className="bg-white p-4 md:p-6 rounded-xl h-full">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0">
+          <h2 className="text-2xl font-semibold text-center md:text-left">
+            Patient Management
+          </h2>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center bg-gray-100 rounded-full px-4 py-2 space-x-2 w-full md:w-auto">
+              <FaSearch className="text-gray-500" />
+              <input
+                type="text"
+                placeholder="Search Patient"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-gray-100 focus:outline-none w-full"
+              />
+            </div>
+            <Link
+              to={`/${role}/add-new-patient`}
+              className="bg-customBlue text-white px-4 py-2 rounded-xl flex items-center space-x-2"
             >
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        {/* Header and Search Bar */}
-        <div className="flex flex-col md:flex-row md:justify-between items-center mb-4 space-y-4 md:space-y-0">
-          <h2 className="text-xl font-semibold md:ml-3">{activeTab}</h2>
-          <div className="flex items-center bg-[#f6f8fb] rounded-full px-4 py-2 w-full md:max-w-md border-2 border-blue-400">
-            <FaSearch className="text-gray-500 mr-2" />
-            <input
-              type="text"
-              placeholder="Search Patient"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-transparent focus:outline-none w-full"
-            />
+              <FaUserPlus className="text-white" />
+              <span>Add New Patient</span>
+            </Link>
           </div>
-          <Link
-            to={`/${role}/add-new-patient`}
-            className="bg-customBlue text-white px-4 py-2 rounded-xl flex items-center space-x-2"
-          >
-            <FaUserPlus className="text-white" />
-            <span>Add New Patient</span>
-          </Link>
         </div>
 
-        {/* Patient Table */}
-        <div className="overflow-x-auto max-h-[620px] custom-scroll">
-          <table className="min-w-full bg-white table-auto rounded-xl">
-            <thead className="sticky top-0 bg-[#F6F8FB]">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold">
+        {/* Responsive Table Wrapper with Vertical and Horizontal Scrollbar */}
+        <div className="overflow-x-auto max-h-[580px] custom-scroll">
+          <table className="w-full bg-white rounded-xl overflow-hidden">
+            <thead>
+              <tr className="bg-gray-100 sticky top-0 z-10">
+                <th className="px-3 md:px-6 py-3 text-left text-gray-600 font-semibold">
                   Patient Name
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold">
-                  Patient Issue
+                <th className="px-3 md:px-6 py-3 text-left text-gray-600 font-semibold">
+                  Gender
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold">
-                  Doctor Name
+                <th className="px-3 md:px-6 py-3 text-left text-gray-600 font-semibold">
+                  Phone Number
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold">
-                  Disease Name
+                <th className="px-3 md:px-6 py-3 text-left text-gray-600 font-semibold">
+                  Age
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold">
-                  Appointment Time
+                <th className="px-3 md:px-6 py-3 text-left text-gray-600 font-semibold">
+                  Blood Group
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold">
-                  Appointment Type
+                <th className="px-3 md:px-6 py-3 text-left text-gray-600 font-semibold">
+                  Case Expire Date
                 </th>
-                <th className="px-6 py-3 text-center text-sm font-semibold">
+                <th className="px-3 md:px-6 py-3 text-left text-gray-600 font-semibold">
+                  Case Status
+                </th>
+                <th className="px-3 md:px-6 py-3 text-center text-gray-600 font-semibold">
                   Action
                 </th>
               </tr>
             </thead>
-            <tbody>
-              {loading ? (
-                [...Array(5)].map((_, index) => (
-                  <tr key={index}>
-                    <td className="px-6 py-4">
-                      <Skeleton width="100%" height={20} />
+            {loading ? (
+              <tbody>
+                {[...Array(5)].map((_, index) => (
+                  <tr key={index} className="border-b">
+                    <td className="px-3 md:px-6 py-4">
+                      <Skeleton height={40} />
                     </td>
-                    <td className="px-6 py-4">
-                      <Skeleton width="100%" height={20} />
+                    <td className="px-3 md:px-6 py-4">
+                      <Skeleton width={80} height={20} />
                     </td>
-                    <td className="px-6 py-4">
-                      <Skeleton width="100%" height={20} />
+                    <td className="px-3 md:px-6 py-4">
+                      <Skeleton width={80} height={20} />
                     </td>
-                    <td className="px-6 py-4">
-                      <Skeleton width="100%" height={20} />
+                    <td className="px-3 md:px-6 py-4">
+                      <Skeleton width={100} height={20} />
                     </td>
-                    <td className="px-6 py-4">
-                      <Skeleton width="100%" height={20} />
+                    <td className="px-3 md:px-6 py-4 text-center">
+                      <Skeleton width={80} height={20} />
                     </td>
-                    <td className="px-6 py-4">
-                      <Skeleton width="100%" height={20} />
+                    <td className="px-3 md:px-6 py-4 text-center">
+                      <Skeleton width={100} height={20} />
                     </td>
-                    <td className="px-6 py-4 text-center">
-                      <Skeleton width={30} height={20} />
+                    <td className="px-3 md:px-6 py-4 text-center">
+                      <Skeleton width={80} height={20} />
+                    </td>
+                    <td className="px-3 md:px-6 py-4 text-center">
+                      <Skeleton width={120} height={40} />
                     </td>
                   </tr>
-                ))
-              ) : filteredAndSearchedAppointments.length > 0 ? (
-                filteredAndSearchedAppointments.map((appointment) => (
-                  <tr key={appointment.id} className="border-b">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {appointment.patientName}
+                ))}
+              </tbody>
+            ) : filteredDoctors.length > 0 ? (
+              <tbody>
+                {filteredDoctors.map((doctor) => (
+                  <tr key={doctor._id} className="border-b">
+                    <td className="px-3 md:px-6 py-4 flex items-center space-x-3">
+                      <img
+                        src={
+                          doctor.profileImage
+                            ? `${doctor.profileImage}`
+                            : userImage
+                        }
+                        alt="Doctor"
+                        className="w-10 h-10 rounded-full"
+                      />
+                      <span>{`${doctor.firstName} ${doctor.lastName}`}</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {appointment.patientIssue}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {appointment.doctorName || "N/A"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {appointment.diseaseName}
-                    </td>
-                    <td className="px-6 py-4 text-blue-600 whitespace-nowrap">
-                      <span className="px-4 py-2 rounded-full bg-[#f6f8fb]">
-                        {appointment.appointmentTime}
+                    <td className="px-3 md:px-6 py-4">
+                      <span className="bg-blue-100 text-blue-600 px-2 md:px-3 py-1 rounded-full text-sm">
+                        {doctor.gender}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 md:px-6 py-4">
+                      {doctor.phoneNumber || "N/A"}
+                    </td>
+                    <td className="px-3 md:px-6 py-4">{doctor.age || "N/A"}</td>
+                    <td className="px-3 md:px-6 py-4 text-center">
+                      <span className="bg-blue-100 text-blue-600 px-2 md:px-3 py-1 rounded-full text-sm">
+                        {doctor.bloodGroup || "N/A"}
+                      </span>
+                    </td>
+                    <td className="px-3 md:px-6 py-4 text-center">
+                      <span className="bg-blue-100 text-blue-600 px-2 md:px-3 py-1 rounded-full text-sm">
+                        {doctor.caseExpiryDate
+                          ? new Date(doctor.caseExpiryDate).toLocaleDateString(
+                              "en-GB"
+                            ) // Format: DD/MM/YYYY
+                          : "N/A"}
+                      </span>
+                    </td>
+
+                    <td className="px-3 md:px-6 py-4 text-center">
                       <span
-                        className={`px-4 py-2 rounded-full ${
-                          appointmentTypeStyles[appointment.appointmentType]
+                        className={`px-2 md:px-3 py-1 rounded-full text-sm ${
+                          doctor.caseStatus === "active"
+                            ? "bg-green-100 text-green-600"
+                            : "bg-red-100 text-red-600"
                         }`}
                       >
-                        {appointment.appointmentType}
+                        {doctor.caseStatus || "N/A"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-center whitespace-nowrap">
-                      <button
-                        className="text-blue-600"
-                        onClick={() => handleViewPatient(appointment.id)}
-                      >
-                        <FaEye />
-                      </button>
+
+                    <td className="px-3 md:px-6 py-4 text-xl text-center">
+                      <div className="flex items-center justify-center space-x-2 md:space-x-4">
+                        <Link
+                          to={`/${role}/edit-patient/${doctor._id}`}
+                          className="text-green-500 hover:text-green-600 bg-gray-100 p-1 md:p-2 rounded-xl"
+                          title="Edit"
+                        >
+                          <FaEdit />
+                        </Link>
+                        <button
+                          onClick={() => handleDeleteClick(doctor._id)}
+                          className="text-red-500 hover:text-red-600 bg-gray-100 p-1 md:p-2 rounded-xl"
+                          title="Delete"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
                     </td>
                   </tr>
-                ))
-              ) : (
+                ))}
+              </tbody>
+            ) : (
+              <tbody>
                 <tr>
-                  <td colSpan="7" className="text-center py-16">
+                  <td colSpan="8" className="text-center py-8 md:py-16">
                     <div className="flex flex-col items-center">
                       <img
                         src={noRecordImage}
-                        alt="No Patient Found"
-                        className="w-48 md:w-96 mb-4"
+                        alt="No Doctor Found"
+                        className="w-32 md:w-48 mb-4"
                       />
-                      <p className="text-gray-500">No records found</p>
+                      <p className="text-gray-500">No Doctors Found</p>
                     </div>
                   </td>
                 </tr>
-              )}
-            </tbody>
+              </tbody>
+            )}
           </table>
         </div>
       </div>
 
-      {/* Patient Details Modal */}
+      {/* Delete Confirmation Modal */}
       {isModalOpen && (
-        <PatientDetailsModal
-          open={isModalOpen}
-          handleClose={handleCloseModal}
-          patient={selectedPatient}
-        />
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
+          <div className="bg-white rounded-xl w-80 p-6 relative shadow-lg border-t-8 border-[#e11d29]">
+            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-[#e11d29] rounded-full w-16 h-16 flex items-center justify-center">
+              <i className="text-white text-3xl">🗑️</i>
+            </div>
+            <div className="text-center mt-8">
+              <h2 className="text-lg font-bold text-[#030229] mb-2">
+                Delete Doctor Details?
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete this doctor details?
+              </p>
+
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="text-gray-700 px-4 py-2 rounded-xl w-full hover:bg-[#f6f8fb] border"
+                >
+                  No
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  type="submit"
+                  className="bg-[#f6f8fb] text-[#4F4F4F] px-4 py-2 rounded-xl hover:text-white hover:bg-[#0EABEB] w-full"
+                >
+                  Yes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
