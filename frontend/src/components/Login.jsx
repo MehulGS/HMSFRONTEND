@@ -38,7 +38,6 @@ const Login = ({ setIsAuthenticated }) => {
 
         localStorage.setItem("token", token);
         setIsAuthenticated(true); // Set authenticated state to true
-        console.log("SomeOne Login")
         toast.success("Login successfully!");
         if (role === "admin") {
           navigate(`/${role}/dashboard`);
