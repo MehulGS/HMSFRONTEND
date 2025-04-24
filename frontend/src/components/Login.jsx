@@ -50,6 +50,7 @@ const Login = ({ setIsAuthenticated }) => {
         } else {
           navigate("/home");
         }
+        console.log("SomeOne Login")
       } catch (error) {
         toast.error("Login failed. Please try again.");
         setErrors({ password: authError || "Login failed, try again" });
