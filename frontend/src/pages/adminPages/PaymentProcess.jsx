@@ -249,8 +249,7 @@ const PaymentProcess = () => {
                       className="text-blue-500 hover:bg-gray-100 p-2 rounded-xl"
                       onClick={() =>
                         navigate(
-                          `/${role}/invoice/${bill.id}/${
-                            bill.patientName || "N/A"
+                          `/${role}/invoice/${bill.id}
                           }`
                         )
                       }
