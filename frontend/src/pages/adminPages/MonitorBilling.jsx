@@ -5,15 +5,15 @@ import Skeleton from "react-loading-skeleton";
 import api from "../../api/api";
 import noRecordImage from "../../assets/images/NoBill.png";
 import "react-loading-skeleton/dist/skeleton.css";
-import {jwtDecode} from "jwt-decode"
+import { jwtDecode } from "jwt-decode";
 
 const MonitorBilling = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [billingData, setBillingData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const token =localStorage.getItem("token")
-  const decoded=jwtDecode(token)
-  const role=decoded.role
+  const token = localStorage.getItem("token");
+  const decoded = jwtDecode(token);
+  const role = decoded.role;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -150,13 +150,7 @@ const MonitorBilling = () => {
                   <td className="px-2 py-3 flex flex-wrap space-x-2">
                     <button
                       className="text-blue-500 hover:bg-gray-100 p-2 rounded-xl"
-                      onClick={() =>
-                        navigate(
-                          `/${role}/invoice/${bill.id}/${
-                            bill.patientName || "N/A"
-                          }`
-                        )
-                      }
+                      onClick={() => navigate(`/${role}/invoice/${bill.id}`)}
                     >
                       <FaEye />
                     </button>
