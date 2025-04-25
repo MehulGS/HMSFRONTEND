@@ -53,12 +53,6 @@ const BillingTable = () => {
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
         <h2 className="text-lg sm:text-xl font-semibold">Billing & Payments</h2>
-
-        <Link to={`/${userRole}/select-template`}>
-          <button className="bg-[#0eabeb] px-3 py-2 rounded-xl text-white text-sm sm:text-base">
-            + Create Bills
-          </button>
-        </Link>
       </div>
 
       {/* Pending Bills Info */}
@@ -131,7 +125,6 @@ const BillingTable = () => {
                   Disease Name
                 </th>
                 <th className="p-3 text-xs sm:text-sm font-semibold">Status</th>
-                <th className="p-3 text-xs sm:text-sm font-semibold">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -154,14 +147,6 @@ const BillingTable = () => {
                     >
                       {bill.status}
                     </span>
-                  </td>
-                  <td className="p-3 text-xs sm:text-base">
-                    <IconButton
-                      color="primary"
-                      onClick={() => handleViewInvoice(bill)}
-                    >
-                      <Visibility fontSize="small" />
-                    </IconButton>
                   </td>
                 </tr>
               ))}
