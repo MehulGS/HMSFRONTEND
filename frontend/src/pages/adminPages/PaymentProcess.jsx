@@ -13,7 +13,8 @@ const PaymentProcess = () => {
   const [selectedBill, setSelectedBill] = useState(null);
   const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
   const [isStatusModalOpen, setStatusModalOpen] = useState(false);
-  const [isAppointmentStatusModalOpen, setIsAppointmentStatusModalOpen] = useState(false);
+  const [isAppointmentStatusModalOpen, setIsAppointmentStatusModalOpen] =
+    useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("All");
@@ -73,13 +74,15 @@ const PaymentProcess = () => {
   const handleAppointmentStatusUpdate = async (newStatus) => {
     try {
       await api.patch(`/appointments/appointments/${selectedAppointment.id}`, {
-        status: newStatus
+        status: newStatus,
       });
 
       // Update local state
       setBillingData((prevData) =>
         prevData.map((bill) =>
-          bill.id === selectedAppointment.id ? { ...bill, status: newStatus } : bill
+          bill.id === selectedAppointment.id
+            ? { ...bill, status: newStatus }
+            : bill
         )
       );
 
@@ -247,12 +250,7 @@ const PaymentProcess = () => {
                   <td className="px-2 py-3 flex flex-wrap space-x-2">
                     <button
                       className="text-blue-500 hover:bg-gray-100 p-2 rounded-xl"
-                      onClick={() =>
-                        navigate(
-                          `/${role}/invoice/${bill.id}
-                          }`
-                        )
-                      }
+                      onClick={() => navigate(`/${role}/invoice/${bill.id}`)}
                     >
                       <FaEye />
                     </button>
@@ -322,7 +320,6 @@ const PaymentProcess = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

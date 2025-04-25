@@ -6,9 +6,10 @@ import { FaPrint } from "react-icons/fa";
 import api from "../../api/api";
 
 const Invoice = () => {
-  const { billId } = useParams();
+  const {billId} = useParams();
   const [invoiceData, setInvoiceData] = useState(null);
   const [loading, setLoading] = useState(true);
+  console.log(billId);
 
   useEffect(() => {
     const fetchInvoiceData = async () => {
@@ -19,6 +20,7 @@ const Invoice = () => {
           },
         });
         setInvoiceData(response.data.invoice);
+        console.log(invoiceData);
         console.log("Invoice data:", response.data.invoice);
       } catch (error) {
         console.error("Error fetching invoice:", error);
