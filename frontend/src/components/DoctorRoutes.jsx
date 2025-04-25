@@ -74,7 +74,7 @@ const DoctorRoutes = ({ onLogout }) => {
               <Route path="/payment-process" element={<PaymentProcess />} />
               <Route path="/medicines" element={<Medicines />} />
               <Route
-                path="/invoice/:billId/:patientName"
+                path="/invoice/:billId"
                 element={<Invoice />}
               />
               <Route path="/payment/edit/:id" element={<EditBill />} />

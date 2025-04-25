@@ -68,7 +68,7 @@ const ReceptionRoutes = ({ onLogout }) => {
               <Route path="/payment-process" element={<PaymentProcess />} />
               <Route path="/medicines" element={<Medicines />} />
               <Route path="/edit-patient/:id" element={<EditPatient />} />
-              <Route path="/invoice/:billId/:patientName" element={<Invoice />} />
+              <Route path="/invoice/:billId" element={<Invoice />} />
               <Route path="/insurance/:id" element={<InsuranceDetail />} />
               <Route path="/payment/edit/:id" element={<EditBill />} />
               <Route path="/analytics" element={<ReportingAnalysis />} />
