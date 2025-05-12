@@ -6,7 +6,7 @@ import { FaPrint } from "react-icons/fa";
 import api from "../../api/api";
 
 const Invoice = () => {
-  const {billId} = useParams();
+  const { billId } = useParams();
   const [invoiceData, setInvoiceData] = useState(null);
   const [loading, setLoading] = useState(true);
   console.log(billId);
@@ -29,19 +29,25 @@ const Invoice = () => {
       }
     };
     fetchInvoiceData();
+    //eslint-disable-next-line
   }, [billId]);
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   const handlePrint = () => {
+    const printContents = document.getElementById("printableArea").innerHTML;
+    const originalContents = document.body.innerHTML;
+    document.body.innerHTML = printContents;
     window.print();
+    document.body.innerHTML = originalContents;
+    window.location.reload(); // reload page to restore React DOM
   };
 
   return (
@@ -58,7 +64,10 @@ const Invoice = () => {
       </div>
 
       {/* Invoice Content */}
-      <div className="bg-white rounded-2xl max-w-3xl mx-auto shadow-md border border-gray-200 overflow-hidden print:shadow-none print:border-none">
+      <div
+        id="printableArea"
+        className="bg-white print:bg-white text-black print:text-black rounded-2xl max-w-3xl mx-auto shadow-md border border-gray-200 print:shadow-none print:border-none"
+      >
         {/* Header */}
         <div className="relative overflow-hidden mb-6">
           <div
@@ -74,14 +83,22 @@ const Invoice = () => {
                 <Skeleton height={50} width={200} />
               ) : (
                 <div>
-                  <h2 className="text-xl font-bold">{invoiceData?.hospital?.name || "Hospital Name"}</h2>
-                  <p className="text-sm text-gray-600">{invoiceData?.hospital?.address || "Hospital Address"}</p>
-                  <p className="text-sm text-gray-600">Phone: {invoiceData?.hospital?.phone}</p>
-                  <p className="text-sm text-gray-600">Email: {invoiceData?.hospital?.email}</p>
+                  <h2 className="text-xl font-bold">
+                    {invoiceData?.hospital?.name || "Hospital Name"}
+                  </h2>
+                  <p className="text-sm text-gray-600">
+                    {invoiceData?.hospital?.address || "Hospital Address"}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Phone: {invoiceData?.hospital?.phone}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Email: {invoiceData?.hospital?.email}
+                  </p>
                   {invoiceData?.hospital?.logoUrl && (
-                    <img 
-                      src={invoiceData?.hospital?.logoUrl} 
-                      alt="Hospital Logo" 
+                    <img
+                      src={invoiceData?.hospital?.logoUrl}
+                      alt="Hospital Logo"
                       className="h-12 w-auto mt-2"
                     />
                   )}
@@ -100,9 +117,9 @@ const Invoice = () => {
             <div className="w-2/3">
               <div className="flex items-center gap-4">
                 {invoiceData?.doctor?.profileImage && (
-                  <img 
-                    src={invoiceData?.doctor?.profileImage} 
-                    alt="Doctor" 
+                  <img
+                    src={invoiceData?.doctor?.profileImage}
+                    alt="Doctor"
                     className="h-16 w-16 rounded-full object-cover"
                   />
                 )}
@@ -119,11 +136,18 @@ const Invoice = () => {
                       <Skeleton width={150} />
                     ) : (
                       <>
-                        <span className="font-medium">{invoiceData?.doctor?.doctorDetails?.specialtyType}</span>
+                        <span className="font-medium">
+                          {invoiceData?.doctor?.doctorDetails?.specialtyType}
+                        </span>
                         <span className="mx-2">•</span>
-                        <span>{invoiceData?.doctor?.doctorDetails?.experience} years experience</span>
+                        <span>
+                          {invoiceData?.doctor?.doctorDetails?.experience} years
+                          experience
+                        </span>
                         <span className="mx-2">•</span>
-                        <span>{invoiceData?.doctor?.doctorDetails?.workType}</span>
+                        <span>
+                          {invoiceData?.doctor?.doctorDetails?.workType}
+                        </span>
                       </>
                     )}
                   </p>
@@ -143,11 +167,17 @@ const Invoice = () => {
             <div>
               <p className="mb-2">
                 <strong>Bill No:</strong>{" "}
-                <span className="text-blue-600 font-medium">{loading ? <Skeleton width={100} /> : invoiceData?.billNumber}</span>
+                <span className="text-blue-600 font-medium">
+                  {loading ? <Skeleton width={100} /> : invoiceData?.billNumber}
+                </span>
               </p>
               <p className="mb-2">
                 <strong>Date:</strong>{" "}
-                {loading ? <Skeleton width={100} /> : formatDate(invoiceData?.billDate)}
+                {loading ? (
+                  <Skeleton width={100} />
+                ) : (
+                  formatDate(invoiceData?.billDate)
+                )}
               </p>
               <p className="mb-2">
                 <strong>Time:</strong>{" "}
@@ -155,9 +185,13 @@ const Invoice = () => {
               </p>
               <p>
                 <strong>Status:</strong>{" "}
-                <span className={`${
-                  invoiceData?.status === "Unpaid" ? "text-red-500" : "text-green-500"
-                } font-medium`}>
+                <span
+                  className={`${
+                    invoiceData?.status === "Unpaid"
+                      ? "text-red-500"
+                      : "text-green-500"
+                  } font-medium`}
+                >
                   {loading ? <Skeleton width={100} /> : invoiceData?.status}
                 </span>
               </p>
@@ -165,7 +199,7 @@ const Invoice = () => {
           </div>
 
           {/* Patient Information */}
-          <div className="bg-gray-100 p-4 rounded-xl mb-6 px-5">
+          <div className="bg-gray-100 p-4 rounded-xl mb-6 px-5 avoid-break print:bg-gray-100 print:text-black">
             <h3 className="font-semibold mb-3">Patient Information</h3>
             <div className="grid grid-cols-2 gap-4">
               <p>
@@ -178,41 +212,65 @@ const Invoice = () => {
               </p>
               <p>
                 <strong>Age:</strong>{" "}
-                {loading ? <Skeleton width={80} /> : `${invoiceData?.patient?.age} Years`}
+                {loading ? (
+                  <Skeleton width={80} />
+                ) : (
+                  `${invoiceData?.patient?.age} Years`
+                )}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-4 mt-2">
               <p>
                 <strong>Gender:</strong>{" "}
-                {loading ? <Skeleton width={120} /> : invoiceData?.patient?.gender}
+                {loading ? (
+                  <Skeleton width={120} />
+                ) : (
+                  invoiceData?.patient?.gender
+                )}
               </p>
               <p>
                 <strong>Phone:</strong>{" "}
-                {loading ? <Skeleton width={120} /> : invoiceData?.patient?.phoneNumber}
+                {loading ? (
+                  <Skeleton width={120} />
+                ) : (
+                  invoiceData?.patient?.phoneNumber
+                )}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-4 mt-2">
               <p>
                 <strong>Email:</strong>{" "}
-                {loading ? <Skeleton width={150} /> : invoiceData?.patient?.email}
+                {loading ? (
+                  <Skeleton width={150} />
+                ) : (
+                  invoiceData?.patient?.email
+                )}
               </p>
               <p>
                 <strong>Payment Type:</strong>{" "}
                 <span className="text-blue-500 font-medium">
-                  {loading ? <Skeleton width={100} /> : invoiceData?.paymentType}
+                  {loading ? (
+                    <Skeleton width={100} />
+                  ) : (
+                    invoiceData?.paymentType
+                  )}
                 </span>
               </p>
             </div>
             <div className="mt-2">
               <p>
                 <strong>Address:</strong>{" "}
-                {loading ? <Skeleton width={200} /> : invoiceData?.patient?.address}
+                {loading ? (
+                  <Skeleton width={200} />
+                ) : (
+                  invoiceData?.patient?.address
+                )}
               </p>
             </div>
           </div>
 
           {/* Disease and Description */}
-          <div className="bg-gray-100 p-4 rounded-xl mb-6 px-5">
+          <div className="bg-gray-100 p-4 rounded-xl mb-6 px-5 avoid-break print:bg-gray-100 print:text-black">
             <p>
               <strong>Disease:</strong>{" "}
               {loading ? <Skeleton width={120} /> : invoiceData?.diseaseName}
@@ -266,29 +324,50 @@ const Invoice = () => {
               <div className="border-b pb-2 mb-2">
                 <p className="flex justify-between mb-2">
                   <span>Amount:</span>
-                  <span>{loading ? <Skeleton width={80} /> : `₹ ${invoiceData?.amount?.toFixed(2)}`}</span>
+                  <span>
+                    {loading ? (
+                      <Skeleton width={80} />
+                    ) : (
+                      `₹ ${invoiceData?.amount?.toFixed(2)}`
+                    )}
+                  </span>
                 </p>
                 <p className="flex justify-between mb-2">
                   <span>Discount:</span>
-                  <span>{loading ? <Skeleton width={80} /> : `${invoiceData?.discount}%`}</span>
+                  <span>
+                    {loading ? (
+                      <Skeleton width={80} />
+                    ) : (
+                      `${invoiceData?.discount}%`
+                    )}
+                  </span>
                 </p>
                 <p className="flex justify-between">
                   <span>Tax:</span>
-                  <span>{loading ? <Skeleton width={80} /> : `${invoiceData?.tax}%`}</span>
+                  <span>
+                    {loading ? <Skeleton width={80} /> : `${invoiceData?.tax}%`}
+                  </span>
                 </p>
               </div>
               <p className="flex justify-between font-semibold text-[#0EABEB] text-xl">
                 <span>Total:</span>
-                <span>{loading ? <Skeleton width={100} /> : `₹ ${invoiceData?.totalAmount?.toFixed(2)}`}</span>
+                <span>
+                  {loading ? (
+                    <Skeleton width={100} />
+                  ) : (
+                    `₹ ${invoiceData?.totalAmount?.toFixed(2)}`
+                  )}
+                </span>
               </p>
             </div>
           </div>
 
           {/* Other Information */}
-          <div className="mt-6 px-4 mb-4 print:break-inside-avoid">
+          {/* <div className="mt-6 px-4 mb-4 print:break-inside-avoid">
             {invoiceData?.otherText && (
               <p className="text-sm text-gray-600 mb-2">
-                <strong>Notes:</strong> {loading ? <Skeleton width={200} /> : invoiceData?.otherText}
+                <strong>Notes:</strong>{" "}
+                {loading ? <Skeleton width={200} /> : invoiceData?.otherText}
               </p>
             )}
             <p className="text-sm text-gray-600">
@@ -299,7 +378,7 @@ const Invoice = () => {
                 formatDate(invoiceData?.createdAt)
               )}
             </p>
-          </div>
+          </div> */}
 
           {/* Signature Section */}
           <div className="mt-8 px-4 mb-6 flex justify-between items-end print:break-inside-avoid">
@@ -308,8 +387,8 @@ const Invoice = () => {
                 {loading ? (
                   <Skeleton width={100} height={40} />
                 ) : (
-                  <img 
-                    src={invoiceData?.doctor?.profileImage} 
+                  <img
+                    src={invoiceData?.doctor?.signatureImage}
                     alt="Doctor Signature"
                     className="h-10 w-auto mx-auto"
                   />
@@ -335,7 +414,11 @@ const Invoice = () => {
                 {loading ? (
                   <Skeleton width={100} height={40} />
                 ) : (
-                  <div className="h-10 w-full" /> // Space for hospital stamp
+                  <img
+                    src={invoiceData?.hospital?.logoUrl}
+                    alt="Hospital Stamp"
+                    className="h-10 w-auto mx-auto"
+                  />
                 )}
               </div>
               <p className="text-sm font-medium">Hospital Stamp</p>
@@ -344,28 +427,37 @@ const Invoice = () => {
         </div>
 
         {/* Footer */}
-        <div className="text-center text-sm bg-[#0EABEB] p-2 rounded-b-lg text-white flex justify-between px-8 mt-4 print:bg-white print:text-gray-600 print:border-t print:border-gray-200">
-          <p>Contact: {loading ? <Skeleton width={100} /> : invoiceData?.patient?.phoneNumber}</p>
-          <p>Email: {loading ? <Skeleton width={150} /> : invoiceData?.patient?.email}</p>
-        </div>
+        {/* <div className="text-center text-sm bg-[#0EABEB] p-2 rounded-b-lg text-white flex justify-between px-8 mt-4 print:bg-white print:text-gray-600 print:border-t print:border-gray-200">
+          <p>
+            Contact:{" "}
+            {loading ? (
+              <Skeleton width={100} />
+            ) : (
+              invoiceData?.patient?.phoneNumber
+            )}
+          </p>
+          <p>
+            Email:{" "}
+            {loading ? <Skeleton width={150} /> : invoiceData?.patient?.email}
+          </p>
+        </div> */}
       </div>
 
       {/* Print-specific styles */}
       <style>
         {`
-          @media print {
-            body {
-              print-color-adjust: exact;
-              -webkit-print-color-adjust: exact;
-            }
-            @page {
-              size: A4;
-              margin: 20mm;
-            }
-            .print\\:break-inside-avoid {
-              break-inside: avoid;
-            }
-          }
+        @media print {
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+        }
+
         `}
       </style>
     </>
