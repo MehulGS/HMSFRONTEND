@@ -6,6 +6,7 @@ import api from "../../api/api";
 import Swal from "sweetalert2";
 import countryData from "../../countryjson/countries+states+cities.json";
 import toast from "react-hot-toast";
+import { jwtDecode } from "jwt-decode";
 
 const EditDoctor = () => {
   const { id } = useParams();
@@ -46,6 +47,9 @@ const EditDoctor = () => {
   // For dynamically filtered states and cities
   const [filteredStates, setFilteredStates] = useState([]);
   const [filteredCities, setFilteredCities] = useState([]);
+  const token = localStorage.getItem("token");
+  const deocde = jwtDecode(token);
+  const role=deocde.role
 
   useEffect(() => {
     const fetchDoctorData = async () => {
@@ -83,12 +87,8 @@ const EditDoctor = () => {
         });
 
         // Set preview images
-        setProfileImagePreview(
-          `${doctor.profileImage}`
-        );
-        setSignatureImagePreview(
-          `${doctor.signatureImage}`
-        );
+        setProfileImagePreview(`${doctor.profileImage}`);
+        setSignatureImagePreview(`${doctor.signatureImage}`);
 
         // Conditionally show hospital fields
         setShowHospitalFields(
@@ -143,15 +143,15 @@ const EditDoctor = () => {
 
   const handleImageChange = (e) => {
     const { name, files } = e.target;
-  
+
     if (files.length > 0) {
       const file = files[0];
-  
+
       setFormData((prevData) => ({
         ...prevData,
         [name]: file, // ✅ Store File object instead of URL
       }));
-  
+
       // ✅ Set preview for UI updates
       if (name === "profileImage") {
         setProfileImagePreview(URL.createObjectURL(file));
@@ -160,13 +160,12 @@ const EditDoctor = () => {
       }
     }
   };
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     const formDataToSend = new FormData();
-    
+
     // Append all form fields (excluding files)
     Object.keys(formData).forEach((key) => {
       if (
@@ -178,7 +177,7 @@ const EditDoctor = () => {
         formDataToSend.append(key, formData[key]);
       }
     });
-  
+
     // ✅ Append Images Properly
     if (formData.profileImage instanceof File) {
       formDataToSend.append("profileImage", formData.profileImage);
@@ -186,20 +185,20 @@ const EditDoctor = () => {
     if (formData.signatureImage instanceof File) {
       formDataToSend.append("signatureImage", formData.signatureImage);
     }
-  
+
     try {
       const response = await api.patch(`/users/doctors/${id}`, formDataToSend, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-  
+
       toast.success("Doctor updated successfully!");
-      navigate("/admin/doctor-management");
+      navigate(`/${role}/doctor-management`);
     } catch (error) {
       console.error("Error updating doctor:", error.response?.data || error);
       toast.error("Failed to update Doctor profile.");
     }
   };
-  
+
   return (
     <div className="min-h-screen">
       <div className="flex flex-col w-full bg-white rounded-lg shadow-lg">

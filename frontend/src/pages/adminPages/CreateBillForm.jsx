@@ -18,6 +18,7 @@ import { AiOutlineDelete } from "react-icons/ai";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import AddDiseaseModal from "../../components/modals/AddDiseaseModal";
 
 const CreateBill = () => {
   const [hospitalFields, setHospitalFields] = useState([]);
@@ -38,6 +39,11 @@ const CreateBill = () => {
 
   // Add new state for bill number
   const [lastBillNumber, setLastBillNumber] = useState(0);
+
+  const [diseases, setDiseases] = useState([]);
+  const [isDiseaseModalOpen, setIsDiseaseModalOpen] = useState(false);
+  const [searchDisease, setSearchDisease] = useState('');
+  const [isDiseaseDropdownOpen, setIsDiseaseDropdownOpen] = useState(false);
 
   const getCurrentDate = () => {
     return new Date().toISOString().split("T")[0]; // "YYYY-MM-DD"
@@ -66,17 +72,12 @@ const CreateBill = () => {
     doctorName: "",
     description: "",
     amount: "",
-    tax: "",
     doctorId: "",
     discount: "",
     totalAmount: "",
     paymentType: "Cash",
     gender: "Male",
     age: "",
-    insuranceCompany: "",
-    insurancePlan: "",
-    claimAmount: "",
-    claimedAmount: "",
     status: "Unpaid",
     logoUrl: "",
   });
@@ -95,18 +96,30 @@ const CreateBill = () => {
   }, []);
 
   // Recalculate total when amount / tax / discount change
-  useEffect(() => {
-    if (formValues.amount && formValues.tax && formValues.discount !== null) {
-      const amount = parseFloat(formValues.amount);
-      const tax = parseFloat(formValues.tax);
-      const discount = parseFloat(formValues.discount);
-      const calculatedTotal = amount + amount * (tax / 100) - discount;
-      setFormValues((prev) => ({
-        ...prev,
-        totalAmount: calculatedTotal.toFixed(2),
-      }));
-    }
-  }, [formValues.amount, formValues.tax, formValues.discount]);
+useEffect(() => {
+  if (formValues.amount) {
+    const amount = parseFloat(formValues.amount);
+    // Default discount to 0 if empty or null
+    const discountPercentage = formValues.discount === '' || formValues.discount === null 
+      ? 0 
+      : parseFloat(formValues.discount);
+    
+    // Validate discount percentage is between 0 and 100
+    const validDiscountPercentage = Math.min(Math.max(discountPercentage, 0), 100);
+    
+    // Calculate discount amount based on percentage
+    const discountAmount = (amount * validDiscountPercentage) / 100;
+    const calculatedTotal = amount - discountAmount;
+    
+    setFormValues((prev) => ({
+      ...prev,
+      totalAmount: calculatedTotal.toFixed(2),
+      // Update discount to ensure it stays within valid range
+      discount: validDiscountPercentage.toString()
+    }));
+  }
+}, [formValues.amount, formValues.discount]);
+
 
   // Fetch patients
   useEffect(() => {
@@ -185,6 +198,24 @@ const CreateBill = () => {
     };
 
     fetchLastBillNumber();
+  }, []);
+
+  // Add useEffect to fetch diseases
+  useEffect(() => {
+    const fetchDiseases = async () => {
+      try {
+        const response = await api.get('/diseases');
+        const diseaseList = response.data.diseases.map(item => ({
+          _id: item._id,
+          name: item.name
+        }));
+        setDiseases(diseaseList);
+      } catch (error) {
+        console.error('Error fetching diseases:', error);
+        setDiseases([]);
+      }
+    };
+    fetchDiseases();
   }, []);
 
   // Update the handleSubmit function to prevent bill number modification
@@ -276,6 +307,11 @@ const CreateBill = () => {
     );
   };
 
+  // Add handler for new disease
+  const handleDiseaseAdded = (newDisease) => {
+    setDiseases(prev => [...prev, { _id: newDisease._id, name: newDisease.name }]);
+  };
+
   // Submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -341,17 +377,12 @@ const CreateBill = () => {
         doctorName: "",
         description: "",
         amount: "",
-        tax: "",
         doctorId: "",
         discount: "",
         totalAmount: "",
         paymentType: "Cash",
         gender: "Male",
         age: "",
-        insuranceCompany: "",
-        insurancePlan: "",
-        claimAmount: "",
-        claimedAmount: "",
         status: "Unpaid",
         logoUrl: "",
       });
@@ -538,17 +569,51 @@ const CreateBill = () => {
 
           {/* Disease */}
           <div className="relative mb-6">
-            <input
-              type="text"
-              name="diseaseName"
-              className="peer w-full px-4 py-2 border border-gray-300 rounded-xl"
-              placeholder="Enter Disease Name"
-              value={formValues.diseaseName}
-              onChange={handleInputChange}
-            />
-            <label className="absolute left-3 -top-3 px-1 bg-white text-sm text-gray-500">
-              Disease Name
-            </label>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <Autocomplete
+                  options={diseases}
+                  getOptionLabel={(option) => option.name}
+                  value={diseases.find(d => d.name === formValues.diseaseName) || null}
+                  onChange={(_, newValue) => {
+                    setFormValues(prev => ({
+                      ...prev,
+                      diseaseName: newValue ? newValue.name : ''
+                    }));
+                  }}
+                  inputValue={searchDisease}
+                  onInputChange={(_, newInputValue) => {
+                    setSearchDisease(newInputValue);
+                  }}
+                  open={isDiseaseDropdownOpen}
+                  onOpen={() => setIsDiseaseDropdownOpen(true)}
+                  onClose={() => setIsDiseaseDropdownOpen(false)}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Disease Name"
+                      placeholder="Search or add disease"
+                      className="w-full"
+                    />
+                  )}
+                  noOptionsText={
+                    <div className="p-2">
+                      <p className="text-gray-500 mb-2">No matching disease found</p>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsDiseaseDropdownOpen(false);
+                          setIsDiseaseModalOpen(true);
+                        }}
+                        className="text-blue-500 hover:text-blue-700 font-medium"
+                      >
+                        + Add New Disease
+                      </button>
+                    </div>
+                  }
+                />
+              </div>
+            </div>
           </div>
 
           {/* Doctor */}
@@ -601,33 +666,27 @@ const CreateBill = () => {
             </label>
           </div>
 
-          {/* Tax */}
-          <div className="relative mb-6">
-            <input
-              type="number"
-              name="tax"
-              className="peer w-full px-4 py-2 border border-gray-300 rounded-xl"
-              placeholder="Enter Tax (%)"
-              value={formValues.tax}
-              onChange={handleInputChange}
-            />
-            <label className="absolute left-3 -top-3 px-1 bg-white text-sm text-gray-500">
-              Tax (%)
-            </label>
-          </div>
-
           {/* Discount */}
           <div className="relative mb-6">
             <input
               type="number"
               name="discount"
               className="peer w-full px-4 py-2 border border-gray-300 rounded-xl"
-              placeholder="Enter Discount"
-              value={formValues.discount}
-              onChange={handleInputChange}
+              placeholder="Enter Discount (%)"
+              min="0"
+              max="100"
+              step="0.01"
+              value={formValues.discount || ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Allow empty value (will be treated as 0)
+                if (value === '' || (parseFloat(value) >= 0 && parseFloat(value) <= 100)) {
+                  handleInputChange(e);
+                }
+              }}
             />
             <label className="absolute left-3 -top-3 px-1 bg-white text-sm text-gray-500">
-              Discount
+              Discount (%)
             </label>
           </div>
 
@@ -656,7 +715,6 @@ const CreateBill = () => {
             >
               <option value="Cash">Cash</option>
               <option value="Online">Online</option>
-              <option value="Insurance">Insurance</option>
             </select>
             <label className="absolute left-3 -top-3 px-1 bg-white text-sm text-gray-500">
               Payment Type
@@ -784,6 +842,13 @@ const CreateBill = () => {
           Save
         </button>
       </div>
+
+      {/* Add Disease Modal */}
+      <AddDiseaseModal
+        open={isDiseaseModalOpen}
+        onClose={() => setIsDiseaseModalOpen(false)}
+        onSuccess={handleDiseaseAdded}
+      />
     </form>
   );
 };

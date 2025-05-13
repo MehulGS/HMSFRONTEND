@@ -247,6 +247,7 @@
 //               {/* Show image if it's an image message */}
 //               {msg.type === 'image' && (
 //                 <div className="my-2">
+//                     // eslint-disable-next-line
 //                   <img src={msg.imageUrl} alt="Chat Image" className="max-w-xs rounded-xl" />
 //                   <p className="text-xs text-gray-500">{msg.time}</p>
 //                 </div>

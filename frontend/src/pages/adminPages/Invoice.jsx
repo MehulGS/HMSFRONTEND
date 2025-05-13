@@ -342,12 +342,6 @@ const Invoice = () => {
                     )}
                   </span>
                 </p>
-                <p className="flex justify-between">
-                  <span>Tax:</span>
-                  <span>
-                    {loading ? <Skeleton width={80} /> : `${invoiceData?.tax}%`}
-                  </span>
-                </p>
               </div>
               <p className="flex justify-between font-semibold text-[#0EABEB] text-xl">
                 <span>Total:</span>

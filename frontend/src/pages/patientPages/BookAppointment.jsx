@@ -45,8 +45,12 @@ const BookAppointment = () => {
   const [bookedSlotsByDate, setBookedSlotsByDate] = useState({});
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedTime, setSelectedTime] = useState({ slot: "" });
-
+  const [searchResults, setSearchResults] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [allPatients, setAllPatients] = useState([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  
+
   const token =localStorage.getItem("token")
   const decoded=jwtDecode(token)
   const role=decoded.role
@@ -135,6 +139,20 @@ const BookAppointment = () => {
       setBookedSlots({});
     }
   }, [doctorDetails]);
+
+  // Add useEffect to fetch all patients when component mounts
+  useEffect(() => {
+    const fetchAllPatients = async () => {
+      try {
+        const res = await api.get(`/users/patients`);
+        setAllPatients(res.data);
+      } catch (err) {
+        console.error("Error fetching patients:", err);
+        toast.error("Error loading patients");
+      }
+    };
+    fetchAllPatients();
+  }, []);
 
   const handleCountryChange = (e) => {
     const selectedCountry = e.target.value;
@@ -283,9 +301,6 @@ const BookAppointment = () => {
     const missingFields = [];
 
     if (!patientIssue) missingFields.push("Patient Issue");
-    if (!country) missingFields.push("Country");
-    if (!state) missingFields.push("State");
-    if (!city) missingFields.push("City");
     if (!doctorDetails?._id) missingFields.push("Doctor");
     if (!selectedDate) missingFields.push("Date");
     if (!selectedHour || !selectedMinute) missingFields.push("Time");
@@ -308,9 +323,9 @@ const BookAppointment = () => {
     const appointmentData = {
       patient: selectedPatient,
       specialty,
-      country,
-      state,
-      city,
+      country: country || "",
+      state: state || "",
+      city: city || "",
       appointmentDate: selectedDate,
       appointmentTime: formattedTime,
       doctor: doctorDetails._id,
@@ -390,12 +405,39 @@ const BookAppointment = () => {
     setSelectedPeriod("AM");
   };
 
+  // Add function to handle search input
+  const handleSearchInput = (e) => {
+    const value = e.target.value;
+    setMobileNumber(value);
+    
+    if (value.length > 0) {
+      const filtered = allPatients.filter(patient => 
+        patient.phoneNumber.includes(value) || 
+        `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(value.toLowerCase())
+      );
+      setSearchResults(filtered);
+      setShowDropdown(true);
+    } else {
+      setSearchResults([]);
+      setShowDropdown(false);
+    }
+  };
+
+  // Add function to handle patient selection from dropdown
+  const handlePatientSelect = (patient) => {
+    setMobileNumber(patient.phoneNumber);
+    setFilteredPatient(patient);
+    setSelectedPatient(patient._id);
+    setShowDropdown(false);
+    toast.success("Patient selected");
+  };
+
   return (
     <div className="bg-white p-6 rounded-xl shadow-lg">
       <h2 className="text-2xl font-semibold mb-6">Appointment Booking</h2>
 
       <div className="flex items-end gap-2 mb-8">
-        <div className="w-full">
+        <div className="w-full relative">
           <label
             htmlFor="mobileNumber"
             className="absolute left-3 -top-2.5 px-1 bg-white text-sm font-medium text-gray-500 peer-focus:-top-2.5 peer-focus:left-3 transition-all duration-200"
@@ -406,16 +448,30 @@ const BookAppointment = () => {
             type="text"
             id="mobileNumber"
             value={mobileNumber}
-            onChange={(e) => setMobileNumber(e.target.value)}
+            onChange={handleSearchInput}
             className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm mb-4"
-            placeholder="Enter Mobile Number"
+            placeholder="Enter Mobile Number or Name"
           />
+          
+          {/* Dropdown for search results */}
+          {showDropdown && searchResults.length > 0 && (
+            <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+              {searchResults.map((patient) => (
+                <div
+                  key={patient._id}
+                  onClick={() => handlePatientSelect(patient)}
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex justify-between items-center"
+                >
+                  <span>{patient.firstName} {patient.lastName}</span>
+                  <span className="text-gray-500 text-sm">{patient.phoneNumber}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
           <button
             onClick={async () => {
               try {
-                const res = await api.get(`/users/patients`);
-                const allPatients = res.data;
-
                 const matchedPatient = allPatients.find(
                   (p) => p.phoneNumber === mobileNumber
                 );
@@ -586,7 +642,7 @@ const BookAppointment = () => {
               </label>
             </div>
 
-            <div className="relative mb-4">
+            {/* <div className="relative mb-4">
               <input
                 type="text"
                 placeholder="Enter Disease Name"
@@ -597,7 +653,7 @@ const BookAppointment = () => {
               <label className="absolute left-3 -top-2.5 px-1 bg-white text-sm font-medium text-[#030229] transition-all duration-200">
                 Disease Name (Optional)
               </label>
-            </div>
+            </div> */}
 
             <button
               onClick={handleBookAppointment}

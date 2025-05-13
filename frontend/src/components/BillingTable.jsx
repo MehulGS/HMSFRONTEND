@@ -79,7 +79,7 @@ const BillingTable = () => {
                   Patient Name
                 </th>
                 <th className="p-3 text-xs sm:text-sm font-semibold">
-                  Disease Name
+                  Recepitonist Name
                 </th>
                 <th className="p-3 text-xs sm:text-sm font-semibold">Status</th>
                 <th className="p-3 text-xs sm:text-sm font-semibold">Action</th>
@@ -122,34 +122,43 @@ const BillingTable = () => {
                   Patient Name
                 </th>
                 <th className="p-3 text-xs sm:text-sm font-semibold">
-                  Disease Name
+                  Receiver Name
                 </th>
                 <th className="p-3 text-xs sm:text-sm font-semibold">Status</th>
               </tr>
             </thead>
             <tbody>
-              {bills.map((bill, index) => (
-                <tr key={index} className="border-t">
-                  <td className="p-3 text-blue-600 cursor-pointer text-xs sm:text-base">
-                    {bill.billNumber}
-                  </td>
-                  <td className="p-3 text-xs sm:text-base">
-                    {bill.patientName}
-                  </td>
-                  <td className="p-3 text-xs sm:text-base">
-                    {bill.diseaseName}
-                  </td>
-                  <td className="p-3 text-xs sm:text-base">
-                    <span
-                      className={`px-3 py-1 text-xs font-medium rounded-full ${
-                        statusStyles[bill.status]
-                      }`}
-                    >
-                      {bill.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+              {bills.map((bill, index) => {
+                const nameofreceiver =
+                  bill.status === "Unpaid"
+                    ? "Not yet"
+                    : bill.statusDetails?.updatedBy?.id?.firstName +
+                      " " +
+                      bill.statusDetails?.updatedBy?.id?.lastName;
+
+                return (
+                  <tr key={index} className="border-t">
+                    <td className="p-3 text-blue-600 cursor-pointer text-xs sm:text-base">
+                      {bill.billNumber}
+                    </td>
+                    <td className="p-3 text-xs sm:text-base">
+                      {bill.patientName}
+                    </td>
+                    <td className="p-3 text-xs sm:text-base">
+                      {nameofreceiver}
+                    </td>
+                    <td className="p-3 text-xs sm:text-base">
+                      <span
+                        className={`px-3 py-1 text-xs font-medium rounded-full ${
+                          statusStyles[bill.status]
+                        }`}
+                      >
+                        {bill.status}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

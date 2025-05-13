@@ -31,7 +31,7 @@ import RescheduleAppointment from "../pages/patientPages/RescheduleAppointment";
 import Medicines from "./Medicines";
 import NotFound from "../pages/NotFound";
 import EditPatient from "./EditPatient";
-
+import ChatPage from "../pages/patientPages/ChatPage";
 
 const AdminRoutes = ({ onLogout }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -72,15 +72,27 @@ const AdminRoutes = ({ onLogout }) => {
                 path="/patient-management"
                 element={<PatientManagement />}
               />
-              <Route path="/appointment-booking" element={<AppointmentBookingPage />} />
-              <Route path="/book-appointment" element={< BookAppointment/>} />
-              <Route path="/reschedule-appointment" element={<RescheduleAppointment />} />
+              <Route
+                path="/appointment-booking"
+                element={<AppointmentBookingPage />}
+              />
+              <Route path="/book-appointment" element={<BookAppointment />} />
+              <Route
+                path="/reschedule-appointment"
+                element={<RescheduleAppointment />}
+              />
               <Route path="/add-new-doctor" element={<AddDoctorForm />} />
               <Route path="/add-new-patient" element={<AddPatientForm />} />
-              <Route path="/add-new-receiptionist" element={<AddReciptionistForm />} />
+              <Route
+                path="/add-new-receiptionist"
+                element={<AddReciptionistForm />}
+              />
               <Route path="/edit-doctor/:id" element={<EditDoctor />} />
               <Route path="/edit-patient/:id" element={<EditPatient />} />
-              <Route path="/edit-receiptionist/:id" element={<EditReceiptionist />} />
+              <Route
+                path="/edit-receiptionist/:id"
+                element={<EditReceiptionist />}
+              />
               <Route
                 path="/view-doctor/:id"
                 element={<EditDoctor isViewOnly />}
@@ -89,10 +101,8 @@ const AdminRoutes = ({ onLogout }) => {
               <Route path="/select-template" element={<SelectTemplate />} />
               <Route path="/payment-process" element={<PaymentProcess />} />
               <Route path="/medicines" element={<Medicines />} />
-              <Route
-                path="/invoice/:billId"
-                element={<Invoice />}
-              />
+              {/* <Route path="/chat" element={<ChatPage />} /> */}
+              <Route path="/invoice/:billId" element={<Invoice />} />
               <Route path="/payment/edit/:id" element={<EditBill />} />
               <Route path="/analytics" element={<ReportingAnalysis />} />
               <Route path="/*" element={<AdminProfile />} />

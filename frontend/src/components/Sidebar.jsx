@@ -10,14 +10,7 @@ import { ReactComponent as VectorIcon } from "../assets/images/Vector.svg";
 import { ReactComponent as ReportIcon } from "../assets/images/Report.svg";
 import { ReactComponent as BilingIcon } from "../assets/images/Billing.svg";
 import { ReactComponent as ChatIcon } from "../assets/images/Chaticon.svg";
-import { ReactComponent as PrescriptioniconIcon } from "../assets/images/Prescriptionicon.svg";
-import { ReactComponent as PatientRecordIcon } from "../assets/images/PatientRecord.svg";
 import { ReactComponent as TeleAccessIcon } from "../assets/images/TeleAccess.svg";
-import { ReactComponent as calendariconIcon } from "../assets/images/calendaricon.svg";
-import { ReactComponent as PatientBillIcon } from "../assets/images/PatientBill.svg";
-import { ReactComponent as TelePatientIcon } from "../assets/images/TelePatient.svg";
-import { ReactComponent as appPatientIcon } from "../assets/images/appPatient.svg";
-import { ReactComponent as healthIcon } from "../assets/images/health.svg";
 import appointment from "../assets/images/appointment.png";
 import toast from "react-hot-toast";
 
@@ -57,6 +50,7 @@ const Sidebar = ({ role, onLogout, isSidebarOpen, setIsSidebarOpen }) => {
           { label: "Medicines", path: `/${role}/medicines` },
         ],
       },
+      //  { label: "Chat", icon: ChatIcon, path: `/${role}/chat` },
       {
         label: "Reporting And Analytics",
         icon: ReportIcon,

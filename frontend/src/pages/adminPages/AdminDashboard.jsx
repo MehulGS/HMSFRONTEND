@@ -6,6 +6,7 @@ import BillingTable from "../../components/BillingTable";
 import PatientsSummary from "../../components/PatientsSummary";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import DiseaseSummary from "../../components/DiseaseSummary";
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -29,6 +30,7 @@ const AdminDashboard = () => {
         <div className="space-y-6">
           {loading ? <Skeleton height={400} /> : <BillingTable />}
           {loading ? <Skeleton height={250} /> : <PatientsSummary />}
+          {loading ? <Skeleton height={250} /> : <DiseaseSummary />}
         </div>
       </div>
     </div>

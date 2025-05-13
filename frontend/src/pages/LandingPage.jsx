@@ -3,7 +3,7 @@ import { Button } from "@mui/material";
 import { motion } from "framer-motion";
 import { FaHospitalAlt, FaUserMd, FaHeartbeat } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import NBLOGO from "../assets/hmsnav.png";
+import logo from "../assets/images/logo.png";
 
 const features = [
   {
@@ -27,7 +27,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-100 to-white overflow-x-hidden">
       {/* Header */}
-      <header className="w-full fixed top-0 bg-white shadow-md z-50">
+      <header className="w-full sticky top-0 bg-white shadow-md z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center py-2 px-6">
           <motion.div
             className="flex items-center"
@@ -36,9 +36,9 @@ export default function LandingPage() {
             transition={{ duration: 0.5 }}
           >
             <img
-              src={NBLOGO}
+              src={logo}
               alt="HMS Logo"
-              className="h-20 w-20 object-contain"
+              className="h-[100px] w-[400px] object-contain"
             />
           </motion.div>
 

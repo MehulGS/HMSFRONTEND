@@ -24,7 +24,6 @@ const EditBill = () => {
     billTime: "",
     billNumber: id,
     discount: "",
-    tax: "",
     amount: "",
     totalAmount: "",
     address: "",
@@ -56,10 +55,9 @@ const EditBill = () => {
           billTime: invoiceData.billTime,
           billNumber: invoiceData.billNumber,
           discount: invoiceData.discount,
-          tax: invoiceData.tax,
           amount: invoiceData.amount,
           totalAmount: invoiceData.totalAmount,
-          address: invoiceData.address,
+          address: invoiceData.patient.address,
         });
       } catch (error) {
         console.error("Error fetching bill data:", error);
@@ -86,19 +84,18 @@ const EditBill = () => {
   };
 
   useEffect(() => {
-    if (formData.amount && formData.tax && formData.discount !== null) {
+    if (formData.amount && formData.discount !== null) {
       const amount = parseFloat(formData.amount) || 0;
-      const tax = parseFloat(formData.tax) || 0;
       const discount = parseFloat(formData.discount) || 0;
 
-      const calculatedTotal = amount + amount * (tax / 100) - discount;
+      const calculatedTotal = amount - (amount * (discount / 100));
 
       setFormData((prevValues) => ({
         ...prevValues,
         totalAmount: calculatedTotal.toFixed(2),
       }));
     }
-  }, [formData.amount, formData.tax, formData.discount]);
+  }, [formData.amount, formData.discount]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -147,10 +144,9 @@ const EditBill = () => {
           { label: "Disease Name", name: "diseaseName", type: "text" },
           { label: "Description", name: "description", type: "text" },
           {
-            label: "Payment Type",
             name: "paymentType",
             type: "select",
-            options: ["Online", "Cash", "Card", "Insurance"],
+            options: ["Cash", "Online"],
           },
           { label: "Bill Date", name: "billDate", type: "date" },
           { label: "Bill Time", name: "billTime", type: "time" },
@@ -161,7 +157,6 @@ const EditBill = () => {
             disabled: true,
           },
           { label: "Amount", name: "amount", type: "number" },
-          { label: "Tax (%)", name: "tax", type: "number" },
           { label: "Discount", name: "discount", type: "number" },
           {
             label: "Total Amount",
@@ -179,7 +174,6 @@ const EditBill = () => {
                 value={formData[field.name]}
                 onChange={handleInputChange}
               >
-                <option value="">{`Select ${field.label}`}</option>
                 {field.options.map((option) => (
                   <option value={option} key={option}>
                     {option}

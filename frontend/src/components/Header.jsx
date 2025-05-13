@@ -214,47 +214,6 @@ const Header = ({ activeMenu, onSearch, toggleSidebar }) => {
           </div>
         )}
 
-        <div className="relative">
-          <div
-            className="rounded-full bg-gray-100 p-3 cursor-pointer"
-            onClick={toggleDropdown}
-          >
-            {loading ? (
-              <Skeleton circle={true} width={30} height={30} />
-            ) : (
-              <FaBell className="text-gray-700" />
-            )}
-          </div>
-
-          {/* Notification Dropdown */}
-          {dropdownOpen && (
-            <div
-              ref={notificationRef}
-              className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-lg z-20"
-            >
-              <div className="p-4 text-lg font-medium text-gray-700 border-b">
-                Notification
-              </div>
-              <div className="max-h-60 overflow-y-auto custom-scroll">
-                {notifications.map((notification, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center px-4 py-3 border-b last:border-b-0"
-                  >
-                    <div className="flex flex-col">
-                      <span className="font-semibold">
-                        {notification.message}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        {notification.time}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
 
         {/* Profile Image */}
         <Link to={`/${userRole}`} className="flex items-center space-x-2">
@@ -264,7 +223,7 @@ const Header = ({ activeMenu, onSearch, toggleSidebar }) => {
             <img
               src={
                 profileImage ||
-                "https://b-hms.onrender.com/default-profile.png"
+                "https://46tb8kl9-8000.inc1.devtunnels.ms/default-profile.png"
               }
               alt="user"
               className="w-10 h-10 rounded-full"
