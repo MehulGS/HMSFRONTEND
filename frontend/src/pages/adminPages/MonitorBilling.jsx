@@ -147,7 +147,7 @@ const MonitorBilling = () => {
                   <td className="px-2 py-3 text-[#4F4F4F]">
                     {bill.billTime || "N/A"}
                   </td>
-                  <td className="px-2 py-3 flex flex-wrap space-x-2">
+                  <td className="px-2 py-3 flex flex-wrap space-x-2 ">
                     <button
                       className="text-blue-500 hover:bg-gray-100 p-2 rounded-xl"
                       onClick={() => navigate(`/${role}/invoice/${bill.id}`)}

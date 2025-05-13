@@ -185,15 +185,6 @@ const PatientManagement = () => {
                 {filteredDoctors.map((doctor) => (
                   <tr key={doctor._id} className="border-b">
                     <td className="px-3 md:px-6 py-4 flex items-center space-x-3">
-                      <img
-                        src={
-                          doctor.profileImage
-                            ? `${doctor.profileImage}`
-                            : userImage
-                        }
-                        alt="Doctor"
-                        className="w-10 h-10 rounded-full"
-                      />
                       <span>{`${doctor.firstName} ${doctor.lastName}`}</span>
                     </td>
                     <td className="px-3 md:px-6 py-4">

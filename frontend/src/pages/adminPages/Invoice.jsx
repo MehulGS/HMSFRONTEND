@@ -137,16 +137,16 @@ const Invoice = () => {
                     ) : (
                       <>
                         <span className="font-medium">
-                          {invoiceData?.doctor?.doctorDetails?.specialtyType}
+                          {invoiceData?.doctor?.specialtyType}
                         </span>
                         <span className="mx-2">•</span>
                         <span>
-                          {invoiceData?.doctor?.doctorDetails?.experience} years
+                          {invoiceData?.doctor?.experience} years
                           experience
                         </span>
                         <span className="mx-2">•</span>
                         <span>
-                          {invoiceData?.doctor?.doctorDetails?.workType}
+                          {invoiceData?.doctor?.workType}
                         </span>
                       </>
                     )}
@@ -155,7 +155,7 @@ const Invoice = () => {
                     {loading ? (
                       <Skeleton width={150} />
                     ) : (
-                      `Working Hours: ${invoiceData?.doctor?.doctorDetails?.workingHours?.workingTime}`
+                      `Working Hours: ${invoiceData?.doctor?.workingHours?.workingTime}`
                     )}
                   </p>
                   <p className="text-sm text-gray-600">
@@ -307,7 +307,7 @@ const Invoice = () => {
                 ) : (
                   invoiceData?.medicines?.map((medicine, index) => (
                     <tr key={index} className="border-b">
-                      <td className="px-4 py-2">{medicine.medicineId.name}</td>
+                      <td className="px-4 py-2">{medicine.name}</td>
                       <td className="px-4 py-2">{medicine.dose}</td>
                       <td className="px-4 py-2">{medicine.duration}</td>
                       <td className="px-4 py-2">{medicine.whenToTake}</td>
