@@ -654,7 +654,7 @@ const Invoice = () => {
                     <img src={letterhead} className="w-full h-full" alt="" />
                   </div>
                   <div className="inputfields absolute top-[300px] w-full max-w-3xl m-auto px-28 flex flex-col items-start justify-end bg-transparent">
-                    <div className="flex justify-between mb-2 text-sm">
+                    <div className="flex justify-between mb-2 text-sm w-full">
                       <span>SUB TOTAL</span>
                       <span>
                         ₹{" "}
@@ -665,7 +665,7 @@ const Invoice = () => {
                         )}
                       </span>
                     </div>
-                    <div className="flex justify-between mb-2 text-sm">
+                    <div className="flex justify-between mb-2 text-sm w-full">
                       <span>DISCOUNT</span>
                       <span>
                         {loading ? (
@@ -675,7 +675,7 @@ const Invoice = () => {
                         )}
                       </span>
                     </div>
-                    <div className="flex justify-between font-semibold text-lg">
+                    <div className="flex justify-between font-semibold text-lg w-full">
                       <span>GRAND TOTAL</span>
                       <span>
                         ₹{" "}
