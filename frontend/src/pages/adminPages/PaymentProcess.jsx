@@ -266,10 +266,13 @@ const PaymentProcess = () => {
                         <FaEye />
                       </button>
                       <button
-                        className="text-blue-500 hover:bg-gray-100 p-2 rounded-xl"
-                        onClick={() =>
-                          navigate(`/${role}/payment/edit/${bill.id}`)
-                        }
+                        className={`p-2 rounded-xl ${
+                          bill.status === "Paid"
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-blue-500 hover:bg-gray-100"
+                        }`}
+                        onClick={() => bill.status !== "Paid" && navigate(`/${role}/payment/edit/${bill.id}`)}
+                        disabled={bill.status === "Paid"}
                       >
                         <FaEdit />
                       </button>

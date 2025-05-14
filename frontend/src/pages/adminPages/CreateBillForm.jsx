@@ -59,7 +59,6 @@ const CreateBill = () => {
     hospitalId: "",
     hospitalName: "",
     hospitalAddress: "",
-    otherText: "",
     billDate: getCurrentDate(),
     billTime: getCurrentTime(),
     billNumber: "",
@@ -390,7 +389,6 @@ useEffect(() => {
         hospitalId: "",
         hospitalName: "",
         hospitalAddress: "",
-        otherText: "",
         billDate: "",
         billTime: "",
         billNumber: "",
@@ -466,22 +464,6 @@ useEffect(() => {
             </select>
             <label className="absolute left-3 -top-3 px-1 bg-white text-sm text-gray-500">
               Hospital<span className="text-red-500">*</span>
-            </label>
-          </div>
-
-          {/* Other Text */}
-          <div className="relative mb-6">
-            <input
-              type="text"
-              name="otherText"
-              className="peer w-full px-4 py-2 border border-gray-300 rounded-xl bg-gray-50"
-              placeholder="Enter Other Text"
-              value={formValues.otherText}
-              onChange={handleInputChange}
-              disabled
-            />
-            <label className="absolute left-3 -top-3 px-1 bg-white text-sm text-gray-500">
-              Other Text
             </label>
           </div>
 
