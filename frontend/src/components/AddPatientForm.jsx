@@ -34,6 +34,7 @@ const AddPatientForm = () => {
   const token = localStorage.getItem("token");
   const decoded = decode(token);
   const role = decoded.role;
+  const userHospital = decoded.adminhospital;
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -70,7 +71,22 @@ const AddPatientForm = () => {
           },
         });
 
-        setHospitalList(response.data.data); 
+        // Filter hospitals based on role
+        if (role === "receptionist" || role === "doctor") {
+          // For receptionist and doctor, only show their assigned hospital
+          const filteredHospitals = response.data.data.filter(
+            hospital => hospital._id === userHospital
+          );
+          setHospitalList(filteredHospitals);
+          // Set the hospital automatically for receptionist/doctor
+          setFormData(prev => ({
+            ...prev,
+            adminhospital: filteredHospitals[0]?.name || ""
+          }));
+        } else {
+          // For admin, show all hospitals
+          setHospitalList(response.data.data);
+        }
       } catch (error) {
         console.error("Failed to fetch hospitals:", error);
         toast.error("Failed to load hospitals");
@@ -78,7 +94,7 @@ const AddPatientForm = () => {
     };
 
     fetchHospitals();
-  }, []);
+  }, [role, userHospital]);
 
   console.log(formData);
   const handleSubmit = async (e) => {
@@ -171,9 +187,10 @@ const AddPatientForm = () => {
               <SelectField
                 id="adminhospital"
                 label="Hospital"
-                options={hospitalList?.map((h) => h.name)} // Adjust if hospital objects are different
+                options={hospitalList?.map((h) => h.name)}
                 value={formData.adminhospital}
                 onChange={handleInputChange}
+                disabled={role === "receptionist" || role === "doctor"}
               />
               <SelectField
                 id="gender"
@@ -268,14 +285,15 @@ const InputField = ({
 );
 
 // SelectField component
-const SelectField = ({ id, label, options, value, onChange }) => (
+const SelectField = ({ id, label, options, value, onChange, disabled = false }) => (
   <div className="relative mb-4">
     <select
       id={id}
       name={id}
-      className="peer w-full px-4 py-2 border border-gray-300 rounded-xl text-[#030229] focus:outline-none"
+      className={`peer w-full px-4 py-2 border border-gray-300 rounded-xl text-[#030229] focus:outline-none ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
       value={value}
       onChange={onChange}
+      disabled={disabled}
     >
       <option value="">{`Select ${label}`}</option>
       {options.map((option) => (
