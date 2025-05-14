@@ -647,7 +647,7 @@ const Invoice = () => {
               </div>
             )}
             {/* Account details on a new A4 page if medicines > 1 */}
-            {medicinesCount > 2 && restMedicines.length === 0 && (
+            {medicinesCount >= 2 && restMedicines.length === 0 && (
               <div className="print:a4-page print:page-break-after w-full">
                 <div className="relative w-full h-[297mm]">
                   <div className="absolute w-full h-full">
