@@ -189,6 +189,7 @@ const PaymentProcess = () => {
                 "Bill Number",
                 "Patient Name",
                 "Disease Name",
+                "Reciever Name",
                 "Phone Number",
                 "Status",
                 "Date",
@@ -218,64 +219,75 @@ const PaymentProcess = () => {
                 </tr>
               ))
             ) : filteredBillingData.length > 0 ? (
-              filteredBillingData.map((bill, index) => (
-                <tr key={index} className="border-b hover:bg-gray-50">
-                  <td className="px-2 py-3">
-                    <span className="px-2 md:px-4 py-1 md:py-2 bg-[#f6f8fb] rounded-full font-semibold text-[#718EBF]">
-                      {bill.billNumber || "N/A"}
-                    </span>
-                  </td>
-                  <td className="px-2 py-3 text-[#4F4F4F]">
-                    {bill.patientName || "N/A"}
-                  </td>
-                  <td className="px-2 py-3 text-[#4F4F4F]">
-                    {bill.diseaseName || "N/A"}
-                  </td>
-                  <td className="px-2 py-3 text-[#4F4F4F]">
-                    {bill.patientPhoneNumber || "N/A"}
-                  </td>
-                  <td className="px-2 py-3">
-                    <span className={statusStyles[bill.status || "Unpaid"]}>
-                      {bill.status || "Unpaid"}
-                    </span>
-                  </td>
-                  <td className="px-2 py-3 text-[#4F4F4F]">
-                    {bill.billDate
-                      ? new Date(bill.billDate).toLocaleDateString()
-                      : "N/A"}
-                  </td>
-                  <td className="px-2 py-3 text-[#4F4F4F]">
-                    {bill.billTime || "N/A"}
-                  </td>
-                  <td className="px-2 py-3 flex flex-wrap space-x-2">
-                    <button
-                      className="text-blue-500 hover:bg-gray-100 p-2 rounded-xl"
-                      onClick={() => navigate(`/${role}/invoice/${bill.id}`)}
-                    >
-                      <FaEye />
-                    </button>
-                    <button
-                      className="text-blue-500 hover:bg-gray-100 p-2 rounded-xl"
-                      onClick={() =>
-                        navigate(`/${role}/payment/edit/${bill.id}`)
-                      }
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      className={`p-2 rounded-xl ${
-                        bill.status === "Paid"
-                          ? "text-gray-400 cursor-not-allowed"
-                          : "text-green-500 hover:bg-gray-100"
-                      }`}
-                      onClick={() => handleOpenPaymentModal(bill)}
-                      disabled={bill.status === "Paid"}
-                    >
-                      <FaDollarSign />
-                    </button>
-                  </td>
-                </tr>
-              ))
+              filteredBillingData.map((bill, index) => {
+                const nameofreceiver =
+                  bill.status === "Unpaid"
+                    ? "Not yet"
+                    : bill.statusDetails?.updatedBy?.id?.firstName +
+                      " " +
+                      bill.statusDetails?.updatedBy?.id?.lastName;
+                return (
+                  <tr key={index} className="border-b hover:bg-gray-50">
+                    <td className="px-2 py-3">
+                      <span className="px-2 md:px-4 py-1 md:py-2 bg-[#f6f8fb] rounded-full font-semibold text-[#718EBF]">
+                        {bill.billNumber || "N/A"}
+                      </span>
+                    </td>
+                    <td className="px-2 py-3 text-[#4F4F4F]">
+                      {bill.patientName || "N/A"}
+                    </td>
+                    <td className="px-2 py-3 text-[#4F4F4F]">
+                      {bill.diseaseName || "N/A"}
+                    </td>
+                    <td className="px-2 py-3 text-[#4F4F4F]">
+                      {nameofreceiver}
+                    </td>
+                    <td className="px-2 py-3 text-[#4F4F4F]">
+                      {bill.patientPhoneNumber || "N/A"}
+                    </td>
+                    <td className="px-2 py-3">
+                      <span className={statusStyles[bill.status || "Unpaid"]}>
+                        {bill.status || "Unpaid"}
+                      </span>
+                    </td>
+                    <td className="px-2 py-3 text-[#4F4F4F]">
+                      {bill.billDate
+                        ? new Date(bill.billDate).toLocaleDateString()
+                        : "N/A"}
+                    </td>
+                    <td className="px-2 py-3 text-[#4F4F4F]">
+                      {bill.billTime || "N/A"}
+                    </td>
+                    <td className="px-2 py-3 flex flex-wrap space-x-2">
+                      <button
+                        className="text-blue-500 hover:bg-gray-100 p-2 rounded-xl"
+                        onClick={() => navigate(`/${role}/invoice/${bill.id}`)}
+                      >
+                        <FaEye />
+                      </button>
+                      <button
+                        className="text-blue-500 hover:bg-gray-100 p-2 rounded-xl"
+                        onClick={() =>
+                          navigate(`/${role}/payment/edit/${bill.id}`)
+                        }
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        className={`p-2 rounded-xl ${
+                          bill.status === "Paid"
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-green-500 hover:bg-gray-100"
+                        }`}
+                        onClick={() => handleOpenPaymentModal(bill)}
+                        disabled={bill.status === "Paid"}
+                      >
+                        <FaDollarSign />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td

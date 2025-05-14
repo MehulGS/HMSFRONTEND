@@ -32,10 +32,12 @@ const CreateBill = () => {
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [medicines, setMedicines] = useState([]);
   const [selectedMedicines, setSelectedMedicines] = useState([]);
-  const token =localStorage.getItem("token")
-  const decoded=jwtDecode(token)
-  const role=decoded.role
-  const navigate=useNavigate()
+  const token = localStorage.getItem("token")
+  const decoded = jwtDecode(token)
+  const role = decoded.role
+  const adminHospitalId = decoded.adminhospital // Get admin's hospital ID from token
+  const doctorId = decoded.id // Get doctor's ID from token
+  const navigate = useNavigate()
 
   // Add new state for bill number
   const [lastBillNumber, setLastBillNumber] = useState(0);
@@ -82,18 +84,32 @@ const CreateBill = () => {
     logoUrl: "",
   });
 
-  // Fetch hospitals
+  // Fetch hospitals and set default hospital
   useEffect(() => {
     const fetchHospitals = async () => {
       try {
         const response = await api.get("/hospitals/hospitals");
         setHospitals(response.data.data);
+        
+        // Find and set the admin's hospital as default
+        const adminHospital = response.data.data.find(h => h._id === adminHospitalId);
+        if (adminHospital) {
+          setFormValues(prev => ({
+            ...prev,
+            hospitalId: adminHospital._id,
+            hospitalName: adminHospital.name,
+            hospitalAddress: adminHospital.address,
+            phoneNumber: adminHospital.phone,
+            email: adminHospital.email,
+            logoUrl: adminHospital.logoUrl,
+          }));
+        }
       } catch (error) {
         console.error("Error fetching hospitals:", error);
       }
     };
     fetchHospitals();
-  }, []);
+  }, [adminHospitalId]); // Add adminHospitalId as dependency
 
   // Recalculate total when amount / tax / discount change
 useEffect(() => {
@@ -134,18 +150,30 @@ useEffect(() => {
     fetchPatients();
   }, []);
 
-  // Fetch doctors
+  // Fetch doctors and set default doctor if role is doctor
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
         const response = await api.get("/users/doctors");
         setDoctors(response.data);
+        
+        // If role is doctor, set the current doctor as selected
+        if (role === "doctor") {
+          const currentDoctor = response.data.find(d => d._id === doctorId);
+          if (currentDoctor) {
+            setFormValues(prev => ({
+              ...prev,
+              doctorId: currentDoctor._id,
+              doctorName: `${currentDoctor.firstName} ${currentDoctor.lastName}`,
+            }));
+          }
+        }
       } catch (error) {
         console.error("Error fetching doctors:", error);
       }
     };
     fetchDoctors();
-  }, []);
+  }, [role, doctorId]);
 
   // Fetch medicines
   useEffect(() => {
@@ -424,9 +452,10 @@ useEffect(() => {
           <div className="relative mb-6">
             <select
               name="hospitalId"
-              className="peer w-full px-4 py-2 border border-gray-300 rounded-xl"
+              className="peer w-full px-4 py-2 border border-gray-300 rounded-xl bg-gray-50"
               value={formValues.hospitalId}
               onChange={handleHospitalSelect}
+              disabled
             >
               <option value="">Select Hospital</option>
               {hospitals.map((hosp) => (
@@ -445,10 +474,11 @@ useEffect(() => {
             <input
               type="text"
               name="otherText"
-              className="peer w-full px-4 py-2 border border-gray-300 rounded-xl"
+              className="peer w-full px-4 py-2 border border-gray-300 rounded-xl bg-gray-50"
               placeholder="Enter Other Text"
               value={formValues.otherText}
               onChange={handleInputChange}
+              disabled
             />
             <label className="absolute left-3 -top-3 px-1 bg-white text-sm text-gray-500">
               Other Text
@@ -460,9 +490,10 @@ useEffect(() => {
             <input
               type="date"
               name="billDate"
-              className="peer w-full px-4 py-2 border border-gray-300 rounded-xl"
+              className="peer w-full px-4 py-2 border border-gray-300 rounded-xl bg-gray-50"
               value={formValues.billDate}
               onChange={handleInputChange}
+              disabled
             />
             <label className="absolute left-3 -top-3 px-1 bg-white text-sm text-gray-500">
               Bill Date
@@ -474,9 +505,10 @@ useEffect(() => {
             <input
               type="time"
               name="billTime"
-              className="peer w-full px-4 py-2 border border-gray-300 rounded-xl"
+              className="peer w-full px-4 py-2 border border-gray-300 rounded-xl bg-gray-50"
               value={formValues.billTime}
               onChange={handleInputChange}
+              disabled
             />
             <label className="absolute left-3 -top-3 px-1 bg-white text-sm text-gray-500">
               Bill Time
@@ -502,10 +534,11 @@ useEffect(() => {
             <input
               type="text"
               name="phoneNumber"
-              className="peer w-full px-4 py-2 border border-gray-300 rounded-xl"
+              className="peer w-full px-4 py-2 border border-gray-300 rounded-xl bg-gray-50"
               placeholder="Enter Phone Number"
               value={formValues.phoneNumber}
               onChange={handleInputChange}
+              disabled
             />
             <label className="absolute left-3 -top-3 px-1 bg-white text-sm text-gray-500">
               Phone Number
@@ -517,10 +550,11 @@ useEffect(() => {
             <input
               type="email"
               name="email"
-              className="peer w-full px-4 py-2 border border-gray-300 rounded-xl"
+              className="peer w-full px-4 py-2 border border-gray-300 rounded-xl bg-gray-50"
               placeholder="Enter Email"
               value={formValues.email}
               onChange={handleInputChange}
+              disabled
             />
             <label className="absolute left-3 -top-3 px-1 bg-white text-sm text-gray-500">
               Email
@@ -618,19 +652,31 @@ useEffect(() => {
 
           {/* Doctor */}
           <div className="relative mb-6">
-            <select
-              name="doctorId"
-              className="peer w-full px-4 py-2 border border-gray-300 rounded-xl"
-              value={formValues.doctorId}
-              onChange={handleDoctorSelect}
-            >
-              <option value="">Select Doctor</option>
-              {doctors.map((doc) => (
-                <option key={doc._id} value={doc._id}>
-                  {doc.firstName} {doc.lastName}
-                </option>
-              ))}
-            </select>
+            {role === "doctor" ? (
+              // If role is doctor, show disabled input with current doctor
+              <input
+                type="text"
+                name="doctorName"
+                className="peer w-full px-4 py-2 border border-gray-300 rounded-xl bg-gray-50"
+                value={formValues.doctorName}
+                disabled
+              />
+            ) : (
+              // If role is not doctor, show doctor selection dropdown
+              <select
+                name="doctorId"
+                className="peer w-full px-4 py-2 border border-gray-300 rounded-xl"
+                value={formValues.doctorId}
+                onChange={handleDoctorSelect}
+              >
+                <option value="">Select Doctor</option>
+                {doctors.map((doc) => (
+                  <option key={doc._id} value={doc._id}>
+                    {doc.firstName} {doc.lastName}
+                  </option>
+                ))}
+              </select>
+            )}
             <label className="absolute left-3 -top-3 px-1 bg-white text-sm text-gray-500">
               Doctor<span className="text-red-500">*</span>
             </label>

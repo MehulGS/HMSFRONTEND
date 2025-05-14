@@ -89,6 +89,7 @@ const MonitorBilling = () => {
                 "Bill Number",
                 "Patient Name",
                 "Disease Name",
+                "Receiver Name",
                 "Phone Number",
                 "Status",
                 "Date",
@@ -118,45 +119,56 @@ const MonitorBilling = () => {
                 </tr>
               ))
             ) : filteredBillingData.length > 0 ? (
-              filteredBillingData.map((bill, index) => (
-                <tr key={index} className="border-b hover:bg-gray-50">
-                  <td className="px-2 py-3">
-                    <span className="px-2 md:px-4 py-1 md:py-2 bg-[#f6f8fb] rounded-full font-semibold text-[#718EBF]">
-                      {bill.billNumber || "N/A"}
-                    </span>
-                  </td>
-                  <td className="px-2 py-3 text-[#4F4F4F]">
-                    {bill.patientName || "N/A"}
-                  </td>
-                  <td className="px-2 py-3 text-[#4F4F4F]">
-                    {bill.diseaseName || "N/A"}
-                  </td>
-                  <td className="px-2 py-3 text-[#4F4F4F]">
-                    {bill.patientPhoneNumber || "N/A"}
-                  </td>
-                  <td className="px-2 py-3">
-                    <span className={statusStyles[bill.status || "Unpaid"]}>
-                      {bill.status || "Unpaid"}
-                    </span>
-                  </td>
-                  <td className="px-2 py-3 text-[#4F4F4F]">
-                    {bill.billDate
-                      ? new Date(bill.billDate).toLocaleDateString()
-                      : "N/A"}
-                  </td>
-                  <td className="px-2 py-3 text-[#4F4F4F]">
-                    {bill.billTime || "N/A"}
-                  </td>
-                  <td className="px-2 py-3 flex flex-wrap space-x-2 ">
-                    <button
-                      className="text-blue-500 hover:bg-gray-100 p-2 rounded-xl"
-                      onClick={() => navigate(`/${role}/invoice/${bill.id}`)}
-                    >
-                      <FaEye />
-                    </button>
-                  </td>
-                </tr>
-              ))
+              filteredBillingData.map((bill, index) => {
+                   const nameofreceiver =
+                  bill.status === "Unpaid"
+                    ? "Not yet"
+                    : bill.statusDetails?.updatedBy?.id?.firstName +
+                      " " +
+                      bill.statusDetails?.updatedBy?.id?.lastName;
+                return (
+                  <tr key={index} className="border-b hover:bg-gray-50">
+                    <td className="px-2 py-3">
+                      <span className="px-2 md:px-4 py-1 md:py-2 bg-[#f6f8fb] rounded-full font-semibold text-[#718EBF]">
+                        {bill.billNumber || "N/A"}
+                      </span>
+                    </td>
+                    <td className="px-2 py-3 text-[#4F4F4F]">
+                      {bill.patientName || "N/A"}
+                    </td>
+                    <td className="px-2 py-3 text-[#4F4F4F]">
+                      {bill.diseaseName || "N/A"}
+                    </td>
+                    <td className="px-2 py-3 text-[#4F4F4F]">
+                      {nameofreceiver}
+                    </td>
+                    <td className="px-2 py-3 text-[#4F4F4F]">
+                      {bill.patientPhoneNumber || "N/A"}
+                    </td>
+                    <td className="px-2 py-3">
+                      <span className={statusStyles[bill.status || "Unpaid"]}>
+                        {bill.status || "Unpaid"}
+                      </span>
+                    </td>
+                    <td className="px-2 py-3 text-[#4F4F4F]">
+                      {bill.billDate
+                        ? new Date(bill.billDate).toLocaleDateString()
+                        : "N/A"}
+                    </td>
+                    <td className="px-2 py-3 text-[#4F4F4F]">
+                      {bill.billTime || "N/A"}
+                    </td>
+                    <td className="px-2 py-3 flex flex-wrap space-x-2 ">
+                      <button
+                        className="text-blue-500 hover:bg-gray-100 p-2 rounded-xl"
+                        onClick={() => navigate(`/${role}/invoice/${bill.id}`)}
+                      >
+                        <FaEye />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td colSpan="8" className="text-center py-8 md:py-16">
