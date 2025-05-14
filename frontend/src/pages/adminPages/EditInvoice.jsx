@@ -67,10 +67,7 @@ const EditInvoice = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Form Submitted", formValues, {
-      hospitalFields,
-      patientFields,
-    });
+    
   };
 
   return (

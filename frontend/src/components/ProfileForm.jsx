@@ -29,7 +29,6 @@ const ProfileForm = ({ role }) => {
     };
     fetchProfile();
   }, []);
-  console.log(formValues)
   // Handle input field changes
   const handleChange = (e) => {
     const { name, value } = e.target;

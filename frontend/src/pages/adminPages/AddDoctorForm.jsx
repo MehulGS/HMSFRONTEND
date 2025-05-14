@@ -46,7 +46,6 @@ const AddDoctorForm = () => {
   const token = localStorage.getItem("token");
   const decoded = decode(token);
   const role = decoded.role;
-  console.log("first", decoded.role);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -81,7 +80,6 @@ const AddDoctorForm = () => {
     setSignature(e.target.files[0]);
   };
 
-  console.log(formData)
 
   const handleSubmit = async (e) => {
     e.preventDefault();

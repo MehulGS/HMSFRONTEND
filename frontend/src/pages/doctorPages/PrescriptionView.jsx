@@ -81,7 +81,6 @@ const PrescriptionView = () => {
     fetchRecords();
     fetchPrescriptions();
   }, [patientId, doctorId]);
-  console.log(prescriptions);
   if (!patient) {
     return <p>Loading patient details...</p>;
   }

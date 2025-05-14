@@ -96,7 +96,6 @@ const AddPatientForm = () => {
     fetchHospitals();
   }, [role, userHospital]);
 
-  console.log(formData);
   const handleSubmit = async (e) => {
     e.preventDefault();
 

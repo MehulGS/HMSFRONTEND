@@ -12,7 +12,6 @@ const Medicines = () => {
     const res = await api.get('/medicine/');
     setMedicines(res.data.data);
   };
-  console.log(medicines)
 
   useEffect(() => {
     fetchMedicines();

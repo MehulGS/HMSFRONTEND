@@ -19,7 +19,6 @@ const DoctorProfileView = ({ onEdit }) => {
     state: "",
     country: "",
   });
-  console.log(profileData)
   useEffect(() => {
     const fetchProfileData = async () => {
       try {

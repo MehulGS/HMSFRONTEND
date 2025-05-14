@@ -24,7 +24,6 @@ const MonitorBilling = () => {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
-        console.log("Billing data:", response.data);
         setBillingData(response.data.data || []);
         setLoading(false);
       } catch (error) {

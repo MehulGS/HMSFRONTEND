@@ -34,7 +34,6 @@ const PendingInvoice = () => {
 
         fetchPendingInvoices();
     }, []);
-    console.log(pendingInvoices)
 
 
     const handleViewInvoice = (bill) => {

@@ -10,7 +10,6 @@ const Invoice = () => {
   const { billId } = useParams();
   const [invoiceData, setInvoiceData] = useState(null);
   const [loading, setLoading] = useState(true);
-  console.log(billId);
 
   // Split medicines for pagination (first 3, rest)
   const medicines = invoiceData?.medicines || [];
@@ -27,8 +26,6 @@ const Invoice = () => {
           },
         });
         setInvoiceData(response.data.invoice);
-        console.log(invoiceData);
-        console.log("Invoice data:", response.data.invoice);
       } catch (error) {
         console.error("Error fetching invoice:", error);
       } finally {

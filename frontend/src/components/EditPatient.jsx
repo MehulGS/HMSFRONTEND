@@ -69,7 +69,6 @@ const EditPatient = () => {
           },
         });
 
-        console.log(response.data);
         if (response.data) {
           const patient = response.data;
 

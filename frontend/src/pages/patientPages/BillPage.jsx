@@ -45,7 +45,6 @@ const BillPage = () => {
     }
   }, []);
 
-  console.log(bills);
 
   const handlePayNow = (bill) => {
     setSelectedBill(bill);

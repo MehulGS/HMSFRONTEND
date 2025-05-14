@@ -38,7 +38,6 @@ const AddRecordModal = ({ open, onClose, patientId, doctorId, onSuccess }) => {
         },
       });
 
-      console.log("Record added successfully:", response.data);
       toast.success("Record added successfully!");
       onSuccess();
       onClose();

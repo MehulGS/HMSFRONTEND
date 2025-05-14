@@ -217,7 +217,6 @@ const PatientDetail = () => {
         patientId={id}
         doctorId={doctorId}
         onSuccess={() => {
-          console.log("Record added successfully");
           setModalOpen(false);
         }}
       />

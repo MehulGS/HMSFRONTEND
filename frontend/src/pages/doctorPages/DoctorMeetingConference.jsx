@@ -40,7 +40,6 @@ const DoctorMeetingConference = () => {
     try {
       const response = await api.get(`/appointments/${appointmentId}`); // Assuming you have a backend route to get appointment details
       const appointmentData = response.data.data;
-      console.log(appointmentData)
       setRoomID(appointmentData.roomID); // Set the room ID from backend
       setUserName(appointmentData.doctorName); // Set the user name (patient name or doctor name)
     } catch (error) {

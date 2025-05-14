@@ -111,7 +111,6 @@ const RescheduleAppointment = () => {
           (appointment) =>
             appointment.patientId === patientId && appointment.status === "Pending"
         );
-        console.log(filteredAppointments);
         setAppointments(filteredAppointments);
       } catch (error) {
         console.error("Error fetching appointments:", error);

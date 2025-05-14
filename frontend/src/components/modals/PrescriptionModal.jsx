@@ -7,7 +7,6 @@ import logo from "../../assets/images/logo.png";
 
 const PrescriptionModal = ({ open, handleClose, prescriptionData }) => {
   if (!open) return null;
-  console.log(prescriptionData);
   const handleDownload = async () => {
     const input = document.getElementById('prescription-modal-content');
     const canvas = await html2canvas(input);

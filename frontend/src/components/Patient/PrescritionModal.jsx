@@ -54,7 +54,6 @@ const PrescriptionModal = ({ prescriptionId, closeModal }) => {
   }
 
   if (!prescriptionData) return null;
-  console.log(prescriptionData);
 
   const { doctor, patient, appointmentId, medicines, additionalNote, prescriptionDate } = prescriptionData;
 

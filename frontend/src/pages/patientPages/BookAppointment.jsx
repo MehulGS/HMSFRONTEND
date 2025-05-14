@@ -124,10 +124,8 @@ const BookAppointment = () => {
           const response = await api.get(
             `/appointments/appointments/booked/${doctorDetails._id}`
           );
-          console.log("Booked slots API response:", response.data);
           if (response.data.success) {
             setBookedSlots(response.data.bookedSlots || {});
-            console.log("Updated booked slots:", response.data.bookedSlots);
           }
         } catch (error) {
           console.error("Error fetching booked slots:", error);
@@ -208,7 +206,6 @@ const BookAppointment = () => {
     const formattedDate = moment(selectedDate).format("DD MMMM, YYYY");
     const formattedTime = moment(selectedTime, "HH:mm").format("hh:mm A");
 
-    console.log("Selected Slot:", formattedDate, formattedTime);
 
     // You can now call your booking API or do further validation here
   };
@@ -221,7 +218,6 @@ const BookAppointment = () => {
       doctorDetails.doctorDetails.workingHours
     ) {
       const { workingHours } = doctorDetails.doctorDetails;
-      console.log("Doctor working hours:", workingHours);
 
       const { workingTime, checkupTime, breakTime } = workingHours;
 
@@ -232,13 +228,6 @@ const BookAppointment = () => {
         const breakStart = timeToMinutes(breakTime);
         const breakEnd = breakStart + 60;
 
-        console.log("Time ranges:", {
-          startTime,
-          endTime,
-          checkupEnd,
-          breakStart,
-          breakEnd
-        });
 
         const slots = [];
         for (let time = startTime; time < endTime; time += 20) {
@@ -255,7 +244,6 @@ const BookAppointment = () => {
           }`;
           slots.push({ time: slotTime, status: slotStatus });
         }
-        console.log("Generated time slots:", slots);
         setTimeSlots(slots);
       }
     }
@@ -349,11 +337,7 @@ const BookAppointment = () => {
   // Add isTimeSlotBooked function with debugging
   const isTimeSlotBooked = (hour, minute) => {
     if (!selectedDate || !bookedSlots || !bookedSlots[selectedDate]) {
-      console.log("Time slot check - missing data:", {
-        selectedDate,
-        hasBookedSlots: !!bookedSlots,
-        hasDateSlots: bookedSlots && !!bookedSlots[selectedDate]
-      });
+
       return false;
     }
     
@@ -369,35 +353,26 @@ const BookAppointment = () => {
     const timeToCheck = `${hour24.toString().padStart(2, '0')}:${minute}`;
     
     const isBooked = bookedSlots[selectedDate].includes(timeToCheck);
-    console.log("Time slot check:", {
-      date: selectedDate,
-      timeToCheck,
-      isBooked,
-      bookedSlotsForDate: bookedSlots[selectedDate]
-    });
+ 
     
     return isBooked;
   };
 
   // Update time selection handlers with debugging
   const handleHourChange = (hour) => {
-    console.log("Hour changed:", hour);
     setSelectedHour(hour);
     setSelectedMinute(""); // Reset minutes when hour changes
   };
 
   const handleMinuteChange = (minute) => {
-    console.log("Minute changed:", minute);
     setSelectedMinute(minute);
   };
 
   const handlePeriodChange = (period) => {
-    console.log("Period changed:", period);
     setSelectedPeriod(period);
   };
 
   const handleDateChange = (date) => {
-    console.log("Date changed:", date);
     setSelectedDate(date);
     // Reset time selection when date changes
     setSelectedHour("");
@@ -776,12 +751,7 @@ const TimePickerDropdown = ({
   isTimeSlotBooked,
   disabled 
 }) => {
-  console.log("TimePickerDropdown props:", {
-    selectedHour,
-    selectedMinute,
-    selectedPeriod,
-    disabled
-  });
+ 
 
   const hours = Array.from({ length: 12 }, (_, i) => {
     const hour = (i + 1).toString().padStart(2, '0');

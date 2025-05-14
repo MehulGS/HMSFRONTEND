@@ -117,15 +117,6 @@ const TimeSlotTable = ({ doctorDetails, specialty, country, state, city, hospita
   // Function to handle appointment booking
   const handleBookAppointment = async () => {
     // Log the values for debugging
-    console.log("Patient Issue:", patientIssue);
-    console.log("Specialty:", specialty);
-    console.log("Country:", country);
-    console.log("State:", state);
-    console.log("City:", city);
-    console.log("Selected Hospital:", hospital);
-    console.log("Selected Doctor:", doctorDetails._id);
-    console.log("Selected Slot:", selectedSlot);
-    console.log("Appointment Type:", appointmentType);
 
     // Check if all required fields are filled
     if (!patientIssue || !specialty || !country || !state || !city || !hospital || !doctorDetails._id || !selectedSlot) {
@@ -151,11 +142,9 @@ const TimeSlotTable = ({ doctorDetails, specialty, country, state, city, hospita
       };
 
       // API call to book appointment
-      console.log("Booking Appointment Data:", appointmentData);
       const response = await api.post("/appointment", appointmentData);
       setAppointmentSuccess(true); // Show success message
       toast.success("Appointment booked successfully!");
-      console.log("Appointment booked successfully", response.data);
     } catch (error) {
       console.error("Error booking appointment", error);
       toast.error("Failed to book appointment!");

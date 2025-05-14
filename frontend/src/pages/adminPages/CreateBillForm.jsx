@@ -206,7 +206,6 @@ useEffect(() => {
         
         // Set the new bill number (highest + 1)
         const newBillNumber = `BILL${(highestBillNumber + 1).toString().padStart(6, '0')}`;
-        console.log("Generated new bill number:", newBillNumber);
         
         setLastBillNumber(highestBillNumber);
         setFormValues(prev => ({
