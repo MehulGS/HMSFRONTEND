@@ -407,7 +407,7 @@ useEffect(() => {
         discount: "",
         totalAmount: "",
         paymentType: "Cash",
-        gender: "Male",
+        gender: "",
         age: "",
         status: "Unpaid",
         logoUrl: "",
@@ -751,16 +751,14 @@ useEffect(() => {
 
           {/* Gender */}
           <div className="relative mb-6">
-            <select
+            <input
               name="gender"
               className="peer w-full px-4 py-2 border border-gray-300 rounded-xl"
               value={formValues.gender}
               onChange={handleInputChange}
+              disabled
             >
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-            </select>
+            </input>
             <label className="absolute left-3 -top-3 px-1 bg-white text-sm text-gray-500">
               Gender
             </label>
@@ -775,6 +773,7 @@ useEffect(() => {
               placeholder="Enter Age"
               value={formValues.age}
               onChange={handleInputChange}
+              disabled
             />
             <label className="absolute left-3 -top-3 px-1 bg-white text-sm text-gray-500">
               Age
