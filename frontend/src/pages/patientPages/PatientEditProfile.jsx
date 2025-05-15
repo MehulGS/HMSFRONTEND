@@ -57,7 +57,7 @@ const PatientEditProfile = () => {
             address: patient.address,
           });
 
-          setProfileImagePreview(`https://b-hms.onrender.com/${patient.profileImage}`);
+          setProfileImagePreview(`https://46tb8kl9-8000.inc1.devtunnels.ms/${patient.profileImage}`);
           setLoading(false);
         }
       } catch (err) {
