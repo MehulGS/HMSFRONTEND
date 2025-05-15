@@ -1,21 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
-import { FaEye, FaEdit, FaTrash, FaSearch, FaUserPlus } from "react-icons/fa";
+import { FaEdit, FaTrash, FaSearch, FaUserPlus, FaEye } from "react-icons/fa";
 
 import noRecordImage from "../../src/assets/images/Frame 1116602772.png";
-import userImage from "../../src/assets/images/user.png";
 import "react-loading-skeleton/dist/skeleton.css";
 import { jwtDecode } from "jwt-decode";
 import api from "../api/api";
 
 const PatientManagement = () => {
-  const [doctors, setDoctors] = useState([]);
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
-  const [isOffCanvasOpen, setIsOffCanvasOpen] = useState(false);
+  const [patients, setPatients] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [doctorToDelete, setDoctorToDelete] = useState(null);
+  const [patientToDelete, setPatientToDelete] = useState(null);
   const [loading, setLoading] = useState(true);
   const decode = jwtDecode;
 
@@ -23,9 +20,9 @@ const PatientManagement = () => {
   const decoded = decode(token);
   const role = decoded.role;
 
-  // Fetch doctors from API
+  // Fetch patients from API
   useEffect(() => {
-    const fetchDoctors = async () => {
+    const fetchPatients = async () => {
       try {
         const token = localStorage.getItem("token");
         const response = await api.get("/users/patients", {
@@ -33,61 +30,50 @@ const PatientManagement = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-        setDoctors(response.data);
+        setPatients(response.data);
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching doctors:", error);
+        console.error("Error fetching patients:", error);
         setLoading(false);
       }
     };
 
-    fetchDoctors();
+    fetchPatients();
   }, []);
 
-  const handleViewClick = (doctor) => {
-    setSelectedDoctor(doctor);
-    setIsOffCanvasOpen(true);
-  };
-
-  const handleCloseOffCanvas = () => {
-    setIsOffCanvasOpen(false);
-    setSelectedDoctor(null);
-  };
-
-  const handleDeleteClick = (doctorId) => {
-    setDoctorToDelete(doctorId);
+  const handleDeleteClick = (patientId) => {
+    setPatientToDelete(patientId);
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setDoctorToDelete(null);
+    setPatientToDelete(null);
   };
 
   const handleConfirmDelete = async () => {
-    if (!doctorToDelete) return;
+    if (!patientToDelete) return;
 
     try {
       const token = localStorage.getItem("token");
-      await api.delete(`/users/patients/${doctorToDelete}`, {
+      await api.delete(`/users/patients/${patientToDelete}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       handleCloseModal();
-      setDoctors(doctors.filter((doctor) => doctor._id !== doctorToDelete));
+      setPatients(patients.filter((patient) => patient._id !== patientToDelete));
     } catch (error) {
       console.log("Error deleting Patient:", error);
     }
   };
 
-
-  const filteredDoctors = doctors.filter(
-    (doctor) =>
-      `${doctor.firstName} ${doctor.lastName}`
+  const filteredPatients = patients.filter(
+    (patient) =>
+      `${patient.firstName} ${patient.lastName}`
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      `${doctor.phoneNumber}`.toLowerCase().includes(searchTerm.toLowerCase())
+      `${patient.phoneNumber}`.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -124,6 +110,9 @@ const PatientManagement = () => {
             <thead>
               <tr className="bg-gray-100 sticky top-0 z-10">
                 <th className="px-3 md:px-6 py-3 text-left text-gray-600 font-semibold">
+                  Sr No
+                </th>
+                <th className="px-3 md:px-6 py-3 text-left text-gray-600 font-semibold">
                   Patient Name
                 </th>
                 <th className="px-3 md:px-6 py-3 text-left text-gray-600 font-semibold">
@@ -138,12 +127,6 @@ const PatientManagement = () => {
                 <th className="px-3 md:px-6 py-3 text-left text-gray-600 font-semibold">
                   Blood Group
                 </th>
-                <th className="px-3 md:px-6 py-3 text-left text-gray-600 font-semibold">
-                  Case Expire Date
-                </th>
-                <th className="px-3 md:px-6 py-3 text-left text-gray-600 font-semibold">
-                  Case Status
-                </th>
                 <th className="px-3 md:px-6 py-3 text-center text-gray-600 font-semibold">
                   Action
                 </th>
@@ -153,6 +136,9 @@ const PatientManagement = () => {
               <tbody>
                 {[...Array(5)].map((_, index) => (
                   <tr key={index} className="border-b">
+                    <td className="px-3 md:px-6 py-4">
+                      <Skeleton height={40} />
+                    </td>
                     <td className="px-3 md:px-6 py-4">
                       <Skeleton height={40} />
                     </td>
@@ -169,71 +155,54 @@ const PatientManagement = () => {
                       <Skeleton width={80} height={20} />
                     </td>
                     <td className="px-3 md:px-6 py-4 text-center">
-                      <Skeleton width={100} height={20} />
-                    </td>
-                    <td className="px-3 md:px-6 py-4 text-center">
-                      <Skeleton width={80} height={20} />
-                    </td>
-                    <td className="px-3 md:px-6 py-4 text-center">
                       <Skeleton width={120} height={40} />
                     </td>
                   </tr>
                 ))}
               </tbody>
-            ) : filteredDoctors.length > 0 ? (
+            ) : filteredPatients.length > 0 ? (
               <tbody>
-                {filteredDoctors.map((doctor) => (
-                  <tr key={doctor._id} className="border-b">
-                    <td className="px-3 md:px-6 py-4 flex items-center space-x-3">
-                      <span>{`${doctor.firstName} ${doctor.lastName}`}</span>
+                {filteredPatients.map((patient) => (
+                  <tr key={patient._id} className="border-b">
+                    <td className="px-3 md:px-6 py-4">
+                      <span>{patient.patientUniqueId||"NOT YET"}</span>
+                    </td>
+                    <td className="px-3 md:px-6 py-4">
+                      <span>{`${patient.firstName} ${patient.lastName}`}</span>
                     </td>
                     <td className="px-3 md:px-6 py-4">
                       <span className="bg-blue-100 text-blue-600 px-2 md:px-3 py-1 rounded-full text-sm">
-                        {doctor.gender}
+                        {patient.gender}
                       </span>
                     </td>
                     <td className="px-3 md:px-6 py-4">
-                      {doctor.phoneNumber || "N/A"}
+                      {patient.phoneNumber || "N/A"}
                     </td>
-                    <td className="px-3 md:px-6 py-4">{doctor.age || "N/A"}</td>
+                    <td className="px-3 md:px-6 py-4">{patient.age || "N/A"}</td>
                     <td className="px-3 md:px-6 py-4 text-center">
                       <span className="bg-blue-100 text-blue-600 px-2 md:px-3 py-1 rounded-full text-sm">
-                        {doctor.bloodGroup || "N/A"}
-                      </span>
-                    </td>
-                    <td className="px-3 md:px-6 py-4 text-center">
-                      <span className="bg-blue-100 text-blue-600 px-2 md:px-3 py-1 rounded-full text-sm">
-                        {doctor.caseExpiryDate
-                          ? new Date(doctor.caseExpiryDate).toLocaleDateString(
-                              "en-GB"
-                            ) // Format: DD/MM/YYYY
-                          : "N/A"}
-                      </span>
-                    </td>
-
-                    <td className="px-3 md:px-6 py-4 text-center">
-                      <span
-                        className={`px-2 md:px-3 py-1 rounded-full text-sm ${
-                          doctor.caseStatus === "active"
-                            ? "bg-green-100 text-green-600"
-                            : "bg-red-100 text-red-600"
-                        }`}
-                      >
-                        {doctor.caseStatus || "N/A"}
+                        {patient.bloodGroup || "N/A"}
                       </span>
                     </td>
 
                     <td className="px-3 md:px-6 py-4 text-xl text-center">
                       <div className="flex items-center justify-center space-x-2 md:space-x-4">
                         <Link
-                          to={`/${role}/edit-patient/${doctor._id}`}
+                          to={`/${role}/patient/${patient._id}`}
+                          className="text-blue-500 hover:text-blue-600 bg-gray-100 p-1 md:p-2 rounded-xl"
+                          title="View"
+                        >
+                          <FaEye />
+                        </Link>
+                        <Link
+                          to={`/${role}/edit-patient/${patient._id}`}
                           className="text-green-500 hover:text-green-600 bg-gray-100 p-1 md:p-2 rounded-xl"
                           title="Edit"
                         >
                           <FaEdit />
                         </Link>
                         <button
-                          onClick={() => handleDeleteClick(doctor._id)}
+                          onClick={() => handleDeleteClick(patient._id)}
                           className="text-red-500 hover:text-red-600 bg-gray-100 p-1 md:p-2 rounded-xl"
                           title="Delete"
                         >
@@ -247,7 +216,7 @@ const PatientManagement = () => {
             ) : (
               <tbody>
                 <tr>
-                  <td colSpan="8" className="text-center py-8 md:py-16">
+                  <td colSpan="9" className="text-center py-8 md:py-16">
                     <div className="flex flex-col items-center">
                       <img
                         src={noRecordImage}

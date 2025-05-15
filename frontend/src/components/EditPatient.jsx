@@ -15,14 +15,12 @@ const EditPatient = () => {
     weigth: "",
     bloodGroup: "",
     phoneNumber: "",
-    country: "",
-    zipCode: "",
     gender: "",
-    state: "",
-    city: "",
     address: "",
     age: "",
     email: "",
+    patientId: "",
+    adminhospital: "",
   });
   const { id } = useParams();
   const navigate = useNavigate();
@@ -94,15 +92,12 @@ const EditPatient = () => {
             weigth: patient.weigth || "",
             bloodGroup: patient.bloodGroup || "",
             phoneNumber: patient.phoneNumber || "",
-            country: patient.country || "",
-            zipCode: patient.zipCode || "",
             gender: patient.gender || "",
-            state: patient.state || "",
-            city: patient.city || "",
             address: patient.address || "",
             age: patient.age || "",
             email: patient.email || "",
             adminhospital: patient.adminhospital || "",
+            patientId: patient.patientUniqueId || "",
           });
         }
       } catch (error) {
@@ -124,7 +119,12 @@ const EditPatient = () => {
           },
         });
 
-        setHospitalList(response.data.data);
+        // Transform hospital data to include both id and name
+        const hospitals = response.data.data.map(hospital => ({
+          id: hospital._id,
+          name: hospital.name
+        }));
+        setHospitalList(hospitals);
       } catch (error) {
         console.error("Failed to fetch hospitals:", error);
         toast.error("Failed to load hospitals");
@@ -159,11 +159,18 @@ const EditPatient = () => {
       <div className="bg-gradient-to-r from-[#f9fbff] to-[#eef5ff] min-h-screen p-4 md:p-8">
         <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-6 md:p-10">
           <h2 className="text-3xl font-semibold text-[#0eabeb] text-center mb-8">
-            🏥 Add New Patient
+            🏥 Edit Patient
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <InputField
+                id="patientId"
+                label="Patient ID"
+                value={formData.patientId}
+                onChange={handleInputChange}
+                disabled={true}
+              />
               <InputField
                 id="firstName"
                 label="First Name"
@@ -218,7 +225,10 @@ const EditPatient = () => {
               <SelectField
                 id="adminhospital"
                 label="Hospital"
-                options={hospitalList?.map((h) => h.name)} // Adjust if hospital objects are different
+                options={hospitalList.map((hospital) => ({
+                  value: hospital.id,
+                  label: hospital.name
+                }))}
                 value={formData.adminhospital}
                 onChange={handleInputChange}
               />
@@ -227,33 +237,6 @@ const EditPatient = () => {
                 label="Gender"
                 options={["Male", "Female", "Other"]}
                 value={formData.gender}
-                onChange={handleInputChange}
-              />
-              <SelectField
-                id="country"
-                label="Country"
-                options={countryData.map((country) => country.name)}
-                value={formData.country}
-                onChange={handleInputChange}
-              />
-              <SelectField
-                id="state"
-                label="State"
-                options={filteredStates.map((state) => state.name)}
-                value={formData.state}
-                onChange={handleInputChange}
-              />
-              <SelectField
-                id="city"
-                label="City"
-                options={filteredCities.map((city) => city.name)}
-                value={formData.city}
-                onChange={handleInputChange}
-              />
-              <InputField
-                id="zipCode"
-                label="Zip Code"
-                value={formData.zipCode}
                 onChange={handleInputChange}
               />
               <InputField
@@ -294,16 +277,20 @@ const InputField = ({
   placeholder = "",
   value,
   onChange,
+  disabled = false,
 }) => (
   <div className="relative mb-4">
     <input
       type={type}
       id={id}
       name={id}
-      className="peer w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none"
+      className={`peer w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none ${
+        disabled ? "bg-gray-100 cursor-not-allowed" : ""
+      }`}
       placeholder={placeholder || `Enter ${label}`}
       value={value}
       onChange={onChange}
+      disabled={disabled}
     />
     <label
       htmlFor={id}
@@ -326,8 +313,8 @@ const SelectField = ({ id, label, options, value, onChange }) => (
     >
       <option value="">{`Select ${label}`}</option>
       {options.map((option) => (
-        <option key={option} value={option}>
-          {option}
+        <option key={option.value || option} value={option.value || option}>
+          {option.label || option}
         </option>
       ))}
     </select>

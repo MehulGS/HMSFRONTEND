@@ -8,6 +8,7 @@ import api from "../api/api";
 
 const AddPatientForm = () => {
   const [formData, setFormData] = useState({
+    patientUniqueId: "",
     firstName: "",
     lastName: "",
     dateOfBirth: "",
@@ -15,20 +16,18 @@ const AddPatientForm = () => {
     weigth: "",
     bloodGroup: "",
     phoneNumber: "",
-    country: "",
-    zipCode: "",
     gender: "",
-    state: "",
-    city: "",
     address: "",
     age: "",
     email: "",
+    koc: "", // Key of Contact
+    drugHistory: "", // Drug History
   });
 
+  const [errors, setErrors] = useState({});
+  const requiredFields = ['firstName', 'lastName', 'dateOfBirth', 'phoneNumber', 'gender', 'age'];
+
   const navigate = useNavigate();
-  const [showHospitalFields, setShowHospitalFields] = useState(false);
-  const [filteredStates, setFilteredStates] = useState([]);
-  const [filteredCities, setFilteredCities] = useState([]);
   const [hospitalList, setHospitalList] = useState([]);
   const decode = jwtDecode;
   const token = localStorage.getItem("token");
@@ -36,29 +35,108 @@ const AddPatientForm = () => {
   const role = decoded.role;
   const userHospital = decoded.adminhospital;
 
+  // Fetch next patient ID when component mounts
+  useEffect(() => {
+    const fetchNextPatientId = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await api.get("/users/nextPatientId", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.data && response.data.nextPatientId) {
+          setFormData(prev => ({
+            ...prev,
+            patientUniqueId: response.data.nextPatientId
+          }));
+        }
+      } catch (error) {
+        console.error("Failed to fetch next patient ID:", error);
+        toast.error("Failed to generate patient ID");
+      }
+    };
+
+    fetchNextPatientId();
+  }, []);
+
+  const calculateAge = (dateOfBirth) => {
+    if (!dateOfBirth) return "";
+    
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    
+    // Check if the date is valid
+    if (isNaN(birthDate.getTime())) return "";
+    
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    // If birthday hasn't occurred this year, subtract one year
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age.toString();
+  };
+
+  const validateField = (name, value) => {
+    if (requiredFields.includes(name) && !value) {
+      return `${name.charAt(0).toUpperCase() + name.slice(1)} is required`;
+    }
+    if (name === 'phoneNumber' && value && !/^\d{10}$/.test(value)) {
+      return 'Phone number must be 10 digits';
+    }
+    if (name === 'age' && value && (isNaN(value) || value < 0 || value > 120)) {
+      return 'Age must be between 0 and 120';
+    }
+    if (name === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      return 'Invalid email format';
+    }
+    return '';
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
+    
+    // If date of birth is changed, calculate age automatically
+    if (name === "dateOfBirth") {
+      const calculatedAge = calculateAge(value);
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        age: calculatedAge
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+
+    // Validate field on change
+    const error = validateField(name, value);
+    setErrors(prev => ({
+      ...prev,
+      [name]: error
+    }));
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    let isValid = true;
+
+    requiredFields.forEach(field => {
+      const error = validateField(field, formData[field]);
+      if (error) {
+        newErrors[field] = error;
+        isValid = false;
+      }
     });
 
-    // Handle country change and populate states
-    if (name === "country") {
-      const selectedCountry = countryData.find(
-        (country) => country.name === value
-      );
-      setFilteredStates(selectedCountry ? selectedCountry.states : []);
-      setFilteredCities([]); // Reset cities when country changes
-    }
-
-    // Handle state change and populate cities
-    if (name === "state") {
-      const selectedState = filteredStates.find(
-        (state) => state.name === value
-      );
-      setFilteredCities(selectedState ? selectedState.cities : []);
-    }
+    setErrors(newErrors);
+    return isValid;
   };
 
   useEffect(() => {
@@ -99,6 +177,11 @@ const AddPatientForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!validateForm()) {
+      toast.error("Please fill in all required fields correctly");
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
       const response = await api.post("/users/register-patient", formData, {
@@ -111,7 +194,7 @@ const AddPatientForm = () => {
       if (response.status !== 201) {
         const error = response.data;
         console.error("Server error:", error);
-        alert(`Error: ${error.message}`);
+        toast.error(`Error: ${error.message}`);
         return;
       }
 
@@ -134,16 +217,27 @@ const AddPatientForm = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <InputField
+                id="patientUniqueId"
+                label="Patient ID"
+                value={formData.patientUniqueId}
+                onChange={handleInputChange}
+                disabled={true}
+              />
+              <InputField
                 id="firstName"
                 label="First Name"
                 value={formData.firstName}
                 onChange={handleInputChange}
+                required={true}
+                error={errors.firstName}
               />
               <InputField
                 id="lastName"
                 label="Last Name"
                 value={formData.lastName}
                 onChange={handleInputChange}
+                required={true}
+                error={errors.lastName}
               />
               <InputField
                 id="dateOfBirth"
@@ -151,6 +245,48 @@ const AddPatientForm = () => {
                 label="Date of Birth"
                 value={formData.dateOfBirth}
                 onChange={handleInputChange}
+                required={true}
+                error={errors.dateOfBirth}
+              />
+              <InputField
+                id="phoneNumber"
+                label="Phone Number"
+                value={formData.phoneNumber}
+                onChange={handleInputChange}
+                required={true}
+                error={errors.phoneNumber}
+              />
+              <SelectField
+                id="gender"
+                label="Gender"
+                options={["Male", "Female", "Other"]}
+                value={formData.gender}
+                onChange={handleInputChange}
+                required={true}
+                error={errors.gender}
+              />
+              <InputField
+                id="age"
+                label="Age"
+                value={formData.age}
+                onChange={handleInputChange}
+                required={true}
+                error={errors.age}
+                placeholder="Auto-calculated from date of birth"
+              />
+              <InputField
+                id="koc"
+                label="Key of Contact"
+                value={formData.koc}
+                onChange={handleInputChange}
+                placeholder="Enter name and relationship of emergency contact"
+              />
+              <InputField
+                id="drugHistory"
+                label="Drug History"
+                value={formData.drugHistory}
+                onChange={handleInputChange}
+                placeholder="Enter patient's drug history"
               />
               <InputField
                 id="heigth"
@@ -171,17 +307,12 @@ const AddPatientForm = () => {
                 onChange={handleInputChange}
               />
               <InputField
-                id="phoneNumber"
-                label="Phone Number"
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
-              />
-              <InputField
                 id="email"
                 label="Email"
                 type="email"
                 value={formData.email}
                 onChange={handleInputChange}
+                error={errors.email}
               />
               <SelectField
                 id="adminhospital"
@@ -191,50 +322,10 @@ const AddPatientForm = () => {
                 onChange={handleInputChange}
                 disabled={role === "receptionist" || role === "doctor"}
               />
-              <SelectField
-                id="gender"
-                label="Gender"
-                options={["Male", "Female", "Other"]}
-                value={formData.gender}
-                onChange={handleInputChange}
-              />
-              <SelectField
-                id="country"
-                label="Country"
-                options={countryData.map((country) => country.name)}
-                value={formData.country}
-                onChange={handleInputChange}
-              />
-              <SelectField
-                id="state"
-                label="State"
-                options={filteredStates.map((state) => state.name)}
-                value={formData.state}
-                onChange={handleInputChange}
-              />
-              <SelectField
-                id="city"
-                label="City"
-                options={filteredCities.map((city) => city.name)}
-                value={formData.city}
-                onChange={handleInputChange}
-              />
-              <InputField
-                id="zipCode"
-                label="Zip Code"
-                value={formData.zipCode}
-                onChange={handleInputChange}
-              />
               <InputField
                 id="address"
                 label="Address"
                 value={formData.address}
-                onChange={handleInputChange}
-              />
-              <InputField
-                id="age"
-                label="Age"
-                value={formData.age}
                 onChange={handleInputChange}
               />
             </div>
@@ -263,36 +354,53 @@ const InputField = ({
   placeholder = "",
   value,
   onChange,
+  disabled = false,
+  required = false,
+  error = "",
 }) => (
   <div className="relative mb-4">
     <input
       type={type}
       id={id}
       name={id}
-      className="peer w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none"
+      className={`peer w-full px-4 py-2 border ${error ? 'border-red-500' : 'border-gray-300'} rounded-xl focus:outline-none ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
       placeholder={placeholder || `Enter ${label}`}
       value={value}
       onChange={onChange}
+      disabled={disabled}
+      required={required}
     />
     <label
       htmlFor={id}
       className="absolute left-3 -top-2.5 px-1 bg-white text-sm font-medium text-[#030229] peer-focus:-top-2.5 peer-focus:left-3 transition-all duration-200"
     >
       {label}
+      {required && <span className="text-red-500 ml-1">*</span>}
     </label>
+    {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
   </div>
 );
 
 // SelectField component
-const SelectField = ({ id, label, options, value, onChange, disabled = false }) => (
+const SelectField = ({ 
+  id, 
+  label, 
+  options, 
+  value, 
+  onChange, 
+  disabled = false,
+  required = false,
+  error = "",
+}) => (
   <div className="relative mb-4">
     <select
       id={id}
       name={id}
-      className={`peer w-full px-4 py-2 border border-gray-300 rounded-xl text-[#030229] focus:outline-none ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+      className={`peer w-full px-4 py-2 border ${error ? 'border-red-500' : 'border-gray-300'} rounded-xl text-[#030229] focus:outline-none ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
       value={value}
       onChange={onChange}
       disabled={disabled}
+      required={required}
     >
       <option value="">{`Select ${label}`}</option>
       {options.map((option) => (
@@ -306,7 +414,9 @@ const SelectField = ({ id, label, options, value, onChange, disabled = false }) 
       className="absolute left-3 -top-2.5 px-1 bg-white text-sm font-medium text-[#030229] peer-focus:-top-2.5 peer-focus:left-3 transition-all duration-200"
     >
       {label}
+      {required && <span className="text-red-500 ml-1">*</span>}
     </label>
+    {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
   </div>
 );
 

@@ -27,6 +27,7 @@ import BookAppointment from "../../pages/patientPages/BookAppointment";
 import AppointmentBookingPage from "../../pages/patientPages/AppointmentBookingPage";
 import RescheduleAppointment from "../../pages/patientPages/RescheduleAppointment";
 import EditPatient from "../EditPatient";
+import PatientDetail from "../PatientDetail";
 
 
 const ReceptionRoutes = ({ onLogout }) => {
@@ -68,6 +69,7 @@ const ReceptionRoutes = ({ onLogout }) => {
               <Route path="/payment-process" element={<PaymentProcess />} />
               <Route path="/medicines" element={<Medicines />} />
               <Route path="/edit-patient/:id" element={<EditPatient />} />
+              <Route path="/patient/:id" element={<PatientDetail />} />
               <Route path="/invoice/:billId" element={<Invoice />} />
               <Route path="/insurance/:id" element={<InsuranceDetail />} />
               <Route path="/payment/edit/:id" element={<EditBill />} />

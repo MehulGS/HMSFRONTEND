@@ -32,6 +32,7 @@ import Medicines from "./Medicines";
 import NotFound from "../pages/NotFound";
 import EditPatient from "./EditPatient";
 import ChatPage from "../pages/patientPages/ChatPage";
+import PatientDetail from "./PatientDetail";
 
 const AdminRoutes = ({ onLogout }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -89,6 +90,7 @@ const AdminRoutes = ({ onLogout }) => {
               />
               <Route path="/edit-doctor/:id" element={<EditDoctor />} />
               <Route path="/edit-patient/:id" element={<EditPatient />} />
+              <Route path="/patient/:id" element={<PatientDetail />} />
               <Route
                 path="/edit-receiptionist/:id"
                 element={<EditReceiptionist />}

@@ -26,6 +26,7 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 import SearchResults from "./SearchResults";
 import EditPatient from "./EditPatient";
+import PatientDetail from "./PatientDetail";
 
 const DoctorRoutes = ({ onLogout }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -65,6 +66,7 @@ const DoctorRoutes = ({ onLogout }) => {
                 path="/patient-management"
                 element={<PatientManagement />}
               />
+              <Route path="/patient/:id" element={<PatientDetail />} />
               <Route path="/add-new-patient" element={<AddPatientForm />} />
               <Route path="/add-new-receiptionist" element={<AddReciptionistForm />} />
               <Route path="/edit-receiptionist/:id" element={<EditReceiptionist />} />
