@@ -33,6 +33,8 @@ import NotFound from "../pages/NotFound";
 import EditPatient from "./EditPatient";
 import ChatPage from "../pages/patientPages/ChatPage";
 import PatientDetail from "./PatientDetail";
+import Diseases from "../pages/Diseases";
+import Description from "../pages/Description";
 
 const AdminRoutes = ({ onLogout }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -78,6 +80,9 @@ const AdminRoutes = ({ onLogout }) => {
                 element={<AppointmentBookingPage />}
               />
               <Route path="/book-appointment" element={<BookAppointment />} />
+              <Route path="/discription" element={<Description />} />
+               <Route path="/diseases" element={<Diseases />} />
+
               <Route
                 path="/reschedule-appointment"
                 element={<RescheduleAppointment />}
@@ -103,6 +108,7 @@ const AdminRoutes = ({ onLogout }) => {
               <Route path="/select-template" element={<SelectTemplate />} />
               <Route path="/payment-process" element={<PaymentProcess />} />
               <Route path="/medicines" element={<Medicines />} />
+              {/* <Route path="/diseases" element={<Diseases />} /> */}
               {/* <Route path="/chat" element={<ChatPage />} /> */}
               <Route path="/invoice/:billId" element={<Invoice />} />
               <Route path="/payment/edit/:id" element={<EditBill />} />

@@ -1,8 +1,9 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
-const AppointmentCard = ({ patientName, doctorName, diseaseName, appointmentTime, appointmentType }) => {
-  return (
-    <div className="bg-white border rounded-xl shadow-md p-4 min-w-[250px] max-w-[250px]">
+const AppointmentCard = ({ patientName, doctorName, diseaseName, appointmentTime, appointmentType, id, userRole }) => {
+  const CardContent = () => (
+    <>
       <div className="flex justify-between items-center mb-2">
         <h3 className="text-md font-semibold text-black">{patientName}</h3>
         <span
@@ -18,6 +19,23 @@ const AppointmentCard = ({ patientName, doctorName, diseaseName, appointmentTime
       <p className="text-sm text-gray-500">
         <span className="font-medium">Appointment Time:</span> {appointmentTime}
       </p>
+    </>
+  );
+
+  if (userRole === "doctor") {
+    return (
+      <Link
+        to={`/doctor/create-prescription/${id}`}
+        className="block bg-white border rounded-xl shadow-md p-4 min-w-[250px] max-w-[250px] hover:shadow-lg transition-shadow duration-300"
+      >
+        <CardContent />
+      </Link>
+    );
+  }
+
+  return (
+    <div className="bg-white border rounded-xl shadow-md p-4 min-w-[250px] max-w-[250px]">
+      <CardContent />
     </div>
   );
 };

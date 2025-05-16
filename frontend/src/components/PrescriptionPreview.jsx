@@ -37,7 +37,6 @@ const PrescriptionPreview = ({ prescriptionData, appointmentId }) => {
           .filter((med) => med.isEnabled)
           .map((med) => ({
             name: med.medicineName,
-            strength: med.strength,
             dose: med.dose,
             duration: med.duration,
             whenToTake: med.whenToTake,
@@ -122,7 +121,6 @@ const PrescriptionPreview = ({ prescriptionData, appointmentId }) => {
           <thead className="bg-[#f6f8fb]">
             <tr>
               <th className="px-4 py-2 border-b font-semibold text-sm text-gray-700">Medicine Name</th>
-              <th className="px-4 py-2 border-b font-semibold text-sm text-gray-700">Strength</th>
               <th className="px-4 py-2 border-b font-semibold text-sm text-gray-700">Dose</th>
               <th className="px-4 py-2 border-b font-semibold text-sm text-gray-700">Duration</th>
               <th className="px-4 py-2 border-b font-semibold text-sm text-gray-700">When to take</th>
@@ -134,7 +132,6 @@ const PrescriptionPreview = ({ prescriptionData, appointmentId }) => {
               .map((medicine, index) => (
                 <tr key={index} className="text-sm text-gray-700">
                   <td className="px-4 py-2 border-b">{medicine.medicineName}</td>
-                  <td className="px-4 py-2 border-b">{medicine.strength}</td>
                   <td className="px-4 py-2 border-b">{medicine.dose}</td>
                   <td className="px-4 py-2 border-b">
                     <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full">{medicine.duration}</span>

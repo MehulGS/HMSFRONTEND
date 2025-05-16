@@ -50,14 +50,11 @@ const Sidebar = ({ role, onLogout, isSidebarOpen, setIsSidebarOpen }) => {
           { label: "Monitor Billing", path: `/${role}/monitor-billing` },
           { label: "Payment Process", path: `/${role}/payment-process` },
           { label: "Medicines", path: `/${role}/medicines` },
+          { label: "Diseases", path: `/${role}/diseases` },
+          { label: "Discription", path: `/${role}/discription` },
         ],
       },
       //  { label: "Chat", icon: ChatIcon, path: `/${role}/chat` },
-      {
-        label: "Reporting And Analytics",
-        icon: ReportIcon,
-        path: `/${role}/analytics`,
-      },
       {
         label:"Appointment booking",
         icon: TeleAccessIcon,
@@ -73,12 +70,22 @@ const Sidebar = ({ role, onLogout, isSidebarOpen, setIsSidebarOpen }) => {
           { label: "Medical Certificate", path: `/${role}/medical-certificate` },
         ],
       },
+       {
+        label: "Reporting And Analytics",
+        icon: ReportIcon,
+        path: `/${role}/analytics`,
+      },
     ],
     doctor: [
       {
         label: "Dashboard",
         icon: DashboardIcon,
         path: `/${role}/dashboard`,
+      },
+      {
+        label:"Today Appointments",
+        icon: TeleAccessIcon,
+        path: `/${role}/today-appointments`,
       },
       {
         label: "Reception Management",
@@ -97,6 +104,18 @@ const Sidebar = ({ role, onLogout, isSidebarOpen, setIsSidebarOpen }) => {
           { label: "Monitor Billing", path: `/${role}/monitor-billing` },
           { label: "Payment Process", path: `/${role}/payment-process` },
           { label: "Medicines", path: `/${role}/medicines` },
+          { label: "Diseases", path: `/${role}/diseases` },
+          { label: "Discription", path: `/${role}/discription` },
+        ],
+      },
+       {
+        label: "Certificate",
+        icon: CertiFicateIcon,
+        subMenu: [
+          { label: "Sick Certificate", path: `/${role}/sick-certificate` },
+          { label: "Death Certificate", path: `/${role}/death-certificate` },
+          { label: "Fitness Certificate", path: `/${role}/fitness-certificate` },
+          { label: "Medical Certificate", path: `/${role}/medical-certificate` },
         ],
       },
       {
@@ -128,6 +147,18 @@ const Sidebar = ({ role, onLogout, isSidebarOpen, setIsSidebarOpen }) => {
           { label: "Monitor Billing", path: `/${role}/monitor-billing` },
           { label: "Payment Process", path: `/${role}/payment-process` },
           { label: "Medicines", path: `/${role}/medicines` },
+          { label: "Diseases", path: `/${role}/diseases` },
+          { label: "Discription", path: `/${role}/discription` },
+        ],
+      },
+       {
+        label: "Certificate",
+        icon: CertiFicateIcon,
+        subMenu: [
+          { label: "Sick Certificate", path: `/${role}/sick-certificate` },
+          { label: "Death Certificate", path: `/${role}/death-certificate` },
+          { label: "Fitness Certificate", path: `/${role}/fitness-certificate` },
+          { label: "Medical Certificate", path: `/${role}/medical-certificate` },
         ],
       },
       {

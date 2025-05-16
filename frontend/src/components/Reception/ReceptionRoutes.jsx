@@ -28,6 +28,8 @@ import AppointmentBookingPage from "../../pages/patientPages/AppointmentBookingP
 import RescheduleAppointment from "../../pages/patientPages/RescheduleAppointment";
 import EditPatient from "../EditPatient";
 import PatientDetail from "../PatientDetail";
+import Diseases from "../../pages/Diseases";
+import Description from "../../pages/Description";
 
 
 const ReceptionRoutes = ({ onLogout }) => {
@@ -68,6 +70,8 @@ const ReceptionRoutes = ({ onLogout }) => {
               <Route path="/select-template" element={<SelectTemplate />} />
               <Route path="/payment-process" element={<PaymentProcess />} />
               <Route path="/medicines" element={<Medicines />} />
+              <Route path="/diseases" element={<Diseases />} />
+              <Route path="/discription" element={<Description />} />
               <Route path="/edit-patient/:id" element={<EditPatient />} />
               <Route path="/patient/:id" element={<PatientDetail />} />
               <Route path="/invoice/:billId" element={<Invoice />} />

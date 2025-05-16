@@ -27,6 +27,10 @@ import Header from "./Header";
 import SearchResults from "./SearchResults";
 import EditPatient from "./EditPatient";
 import PatientDetail from "./PatientDetail";
+import Diseases from "../pages/Diseases";
+import AppointmentPage from "../pages/AppointmentPage";
+import CreatePrescriptionPage from "./CreatePrescriptionPage";
+import Description from "../pages/Description";
 
 const DoctorRoutes = ({ onLogout }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -66,19 +70,29 @@ const DoctorRoutes = ({ onLogout }) => {
                 path="/patient-management"
                 element={<PatientManagement />}
               />
+              <Route
+                path="/create-prescription/:id"
+                element={<CreatePrescriptionPage />}
+              />
               <Route path="/patient/:id" element={<PatientDetail />} />
               <Route path="/add-new-patient" element={<AddPatientForm />} />
-              <Route path="/add-new-receiptionist" element={<AddReciptionistForm />} />
-              <Route path="/edit-receiptionist/:id" element={<EditReceiptionist />} />
+              <Route
+                path="/add-new-receiptionist"
+                element={<AddReciptionistForm />}
+              />
+              <Route
+                path="/edit-receiptionist/:id"
+                element={<EditReceiptionist />}
+              />
               <Route path="/monitor-billing" element={<MonitorBilling />} />
               <Route path="/edit-patient/:id" element={<EditPatient />} />
               <Route path="/select-template" element={<SelectTemplate />} />
               <Route path="/payment-process" element={<PaymentProcess />} />
               <Route path="/medicines" element={<Medicines />} />
-              <Route
-                path="/invoice/:billId"
-                element={<Invoice />}
-              />
+              <Route path="/diseases" element={<Diseases />} />
+              <Route path="/discription" element={<Description />} />
+              <Route path="/today-appointments" element={<AppointmentPage />} />
+              <Route path="/invoice/:billId" element={<Invoice />} />
               <Route path="/payment/edit/:id" element={<EditBill />} />
               <Route path="/analytics" element={<ReportingAnalysis />} />
               <Route path="/*" element={<AdminProfile />} />

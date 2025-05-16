@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { Line } from 'react-chartjs-2';
-import api from '../api/api';
-import Skeleton from 'react-loading-skeleton';
-import 'react-loading-skeleton/dist/skeleton.css';
+import { useState, useEffect } from "react";
+import { Line } from "react-chartjs-2";
+import api from "../api/api";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,45 +12,132 @@ import {
   Title,
   Tooltip,
   Legend,
-} from 'chart.js';
+} from "chart.js";
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const PatientsStatistics = () => {
-  const [timeframe, setTimeframe] = useState('Year');
+  const [timeframe, setTimeframe] = useState("Year");
   const [chartData, setChartData] = useState([]);
+  const [labels, setLabels] = useState([]);
+  const [tooltipData, setTooltipData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPatientData = async () => {
       setLoading(true);
       try {
-        const response = await api.get('/users/patients');
+        const response = await api.get("/users/patients");
         const patients = response.data;
 
         const currentDate = new Date();
-        const dataCounts = Array(timeframe === 'Year' ? 12 : (timeframe === 'Month' ? 30 : 7)).fill(0);
+        let dataCounts = [];
+        let groupedPatients = [];
+        let tempLabels = [];
 
-        patients.forEach((patient) => {
-          const registrationDate = new Date(patient.createdAt);
+        if (timeframe === "Year") {
+          dataCounts = Array(12).fill(0);
+          groupedPatients = Array(12)
+            .fill()
+            .map(() => []);
+          tempLabels = [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+          ];
 
-          if (timeframe === 'Year' && registrationDate.getFullYear() === currentDate.getFullYear()) {
-            const month = registrationDate.getMonth();
-            dataCounts[month]++;
-          } else if (timeframe === 'Month' && registrationDate.getMonth() === currentDate.getMonth() && registrationDate.getFullYear() === currentDate.getFullYear()) {
-            const day = registrationDate.getDate() - 1;
-            dataCounts[day]++;
-          } else if (timeframe === 'Week') {
-            const daysDifference = Math.floor((currentDate - registrationDate) / (1000 * 60 * 60 * 24));
-            if (daysDifference < 7) {
-              dataCounts[6 - daysDifference]++;
+          patients.forEach((patient) => {
+            const date = new Date(patient.createdAt);
+            if (date.getFullYear() === currentDate.getFullYear()) {
+              const month = date.getMonth();
+              dataCounts[month]++;
+              groupedPatients[month].push(
+                `${patient.firstName} ${patient.lastName}`
+              );
             }
+          });
+        } else if (timeframe === "Month") {
+          const daysInMonth = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth() + 1,
+            0
+          ).getDate();
+          dataCounts = Array(daysInMonth).fill(0);
+          groupedPatients = Array(daysInMonth)
+            .fill()
+            .map(() => []);
+          tempLabels = Array.from(
+            { length: daysInMonth },
+            (_, i) => `Day ${i + 1}`
+          );
+
+          patients.forEach((patient) => {
+            const date = new Date(patient.createdAt);
+            if (
+              date.getFullYear() === currentDate.getFullYear() &&
+              date.getMonth() === currentDate.getMonth()
+            ) {
+              const day = date.getDate() - 1;
+              dataCounts[day]++;
+              groupedPatients[day].push(
+                `${patient.firstName} ${patient.lastName}`
+              );
+            }
+          });
+        } else if (timeframe === "Week") {
+          dataCounts = Array(7).fill(0);
+          groupedPatients = Array(7)
+            .fill()
+            .map(() => []);
+          const weekLabels = [];
+          const weekDates = [];
+
+          for (let i = 6; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(currentDate.getDate() - i);
+            weekDates.push(date.toDateString());
+            weekLabels.push(
+              date.toLocaleDateString("en-US", { weekday: "short" })
+            );
           }
-        });
+
+          tempLabels = weekLabels;
+
+          patients.forEach((patient) => {
+            const patientDate = new Date(patient.createdAt).toDateString();
+
+            const index = weekDates.findIndex((date) => date === patientDate);
+            if (index !== -1) {
+              dataCounts[index]++;
+              groupedPatients[index].push(
+                `${patient.firstName} ${patient.lastName}`
+              );
+            }
+          });
+        }
 
         setChartData(dataCounts);
+        setLabels(tempLabels);
+        setTooltipData(groupedPatients);
       } catch (error) {
-        console.error('Error fetching patient data:', error);
+        console.error("Error fetching patient data:", error);
       } finally {
         setLoading(false);
       }
@@ -60,20 +147,16 @@ const PatientsStatistics = () => {
   }, [timeframe]);
 
   const data = {
-    labels: timeframe === 'Year'
-      ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-      : timeframe === 'Month'
-      ? Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`)
-      : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    labels: labels,
     datasets: [
       {
-        label: 'Patients Registered',
+        label: "Patients Registered",
         data: chartData,
         fill: true,
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-        borderColor: '#A35DFF',
-        pointBackgroundColor: '#fff',
-        pointBorderColor: '#A35DFF',
+        backgroundColor: "rgba(75, 192, 192, 0.2)",
+        borderColor: "#A35DFF",
+        pointBackgroundColor: "#fff",
+        pointBorderColor: "#A35DFF",
         tension: 0.4,
         pointRadius: 4,
       },
@@ -83,20 +166,18 @@ const PatientsStatistics = () => {
   const options = {
     responsive: true,
     plugins: {
-      legend: {
-        display: false,
-      },
+      legend: { display: false },
       tooltip: {
         callbacks: {
-          label: function (context) {
-            let label = context.dataset.label || '';
-            if (label) {
-              label += ': ';
-            }
-            if (context.parsed.y !== null) {
-              label += context.parsed.y.toLocaleString();
-            }
-            return label;
+          title: (tooltipItems) => tooltipItems[0].label,
+          label: (context) => {
+            const index = context.dataIndex;
+            const count = chartData[index];
+            const names = tooltipData[index] || [];
+            return [
+              `Registered: ${count}`,
+              ...names.map((name, i) => `👤 ${name}`),
+            ];
           },
         },
       },
@@ -105,7 +186,7 @@ const PatientsStatistics = () => {
       y: {
         beginAtZero: true,
         ticks: {
-          stepSize: 5,
+          precision: 0,
         },
       },
     },
@@ -114,13 +195,17 @@ const PatientsStatistics = () => {
   return (
     <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md w-full max-w-full">
       <div className="flex flex-col sm:flex-row justify-between items-center">
-        <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0">Patients Statistics</h2>
+        <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0">
+          Patients Statistics
+        </h2>
         <div className="flex gap-1 sm:gap-2">
-          {['Year', 'Month', 'Week'].map((time) => (
+          {["Year", "Month", "Week"].map((time) => (
             <button
               key={time}
               className={`px-3 sm:px-4 py-1 text-xs sm:text-sm font-medium rounded ${
-                timeframe === time ? 'bg-[#0eabeb] text-white' : 'bg-gray-200 text-gray-700'
+                timeframe === time
+                  ? "bg-[#0eabeb] text-white"
+                  : "bg-gray-200 text-gray-700"
               }`}
               onClick={() => setTimeframe(time)}
             >
@@ -130,7 +215,7 @@ const PatientsStatistics = () => {
         </div>
       </div>
 
-      {/* Skeleton Loader or Chart */}
+      {/* Loader or Chart */}
       {loading ? (
         <div className="mt-6">
           <Skeleton height={300} />
