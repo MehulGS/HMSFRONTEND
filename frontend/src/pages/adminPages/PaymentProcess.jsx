@@ -18,6 +18,7 @@ const PaymentProcess = () => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("All");
+  const [selectedPaymentType, setSelectedPaymentType] = useState("Cash");
   const token = localStorage.getItem("token");
   const decoded = jwtDecode(token);
   const role = decoded.role;
@@ -50,18 +51,32 @@ const PaymentProcess = () => {
     setPaymentModalOpen(false);
     setStatusModalOpen(false);
     setSelectedBill(null);
+    setSelectedPaymentType("Cash");
   };
 
   const handleStatusUpdate = async (newStatus) => {
     try {
-      await api.patch(`/invoices/status/${selectedBill.id}`, {
-        status: newStatus,
-      });
+      if (newStatus === "Paid") {
+        await api.patch(`/invoices/status/${selectedBill.id}`, {
+          status: newStatus,
+          paymentType: selectedPaymentType
+        });
+      } else {
+        await api.patch(`/invoices/status/${selectedBill.id}`, {
+          status: newStatus
+        });
+      }
 
       // Update local state
       setBillingData((prevData) =>
         prevData.map((bill) =>
-          bill.id === selectedBill.id ? { ...bill, status: newStatus } : bill
+          bill.id === selectedBill.id 
+            ? { 
+                ...bill, 
+                status: newStatus,
+                paymentType: newStatus === "Paid" ? selectedPaymentType : bill.paymentType 
+              } 
+            : bill
         )
       );
 
@@ -313,18 +328,29 @@ const PaymentProcess = () => {
               Update Payment Status
             </h3>
             <div className="space-y-4">
+              {selectedBill.status !== "Paid" && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Payment Type
+                  </label>
+                  <select
+                    value={selectedPaymentType}
+                    onChange={(e) => setSelectedPaymentType(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0eabeb] focus:border-transparent"
+                  >
+                    <option value="Cash">Cash</option>
+                    <option value="Online">Online</option>
+                  </select>
+                </div>
+              )}
               <button
-                className="w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                className="w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => handleStatusUpdate("Paid")}
+                disabled={selectedBill.status === "Paid"}
               >
                 Mark as Paid
               </button>
-              <button
-                className="w-full py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-                onClick={() => handleStatusUpdate("Unpaid")}
-              >
-                Mark as Unpaid
-              </button>
+
               <button
                 className="w-full py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                 onClick={handleClosePaymentModal}
