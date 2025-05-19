@@ -12,6 +12,7 @@ import { ReactComponent as BilingIcon } from "../assets/images/Billing.svg";
 import { ReactComponent as CertiFicateIcon } from "../assets/images/certificateicon.svg";
 import { ReactComponent as ChatIcon } from "../assets/images/Chaticon.svg";
 import { ReactComponent as TeleAccessIcon } from "../assets/images/TeleAccess.svg";
+import { ReactComponent as PrescriptionIcon } from "../assets/images/Prescriptionicon.svg";
 import appointment from "../assets/images/appointment.png";
 import toast from "react-hot-toast";
 
@@ -19,6 +20,7 @@ const Sidebar = ({ role, onLogout, isSidebarOpen, setIsSidebarOpen }) => {
   const navigate = useNavigate();
   const [openBilling, setOpenBilling] = useState(false);
   const [openCertificate, setOpenCertificate] = useState(false);
+  const [openPrescription, setOpenPrescription] = useState(false);
   const [activeTab, setActiveTab] = useState(null);
 
   const tabs = {
@@ -49,28 +51,41 @@ const Sidebar = ({ role, onLogout, isSidebarOpen, setIsSidebarOpen }) => {
         subMenu: [
           { label: "Monitor Billing", path: `/${role}/monitor-billing` },
           { label: "Payment Process", path: `/${role}/payment-process` },
-          { label: "Medicines", path: `/${role}/medicines` },
           { label: "Diseases", path: `/${role}/diseases` },
           { label: "Discription", path: `/${role}/discription` },
         ],
       },
       //  { label: "Chat", icon: ChatIcon, path: `/${role}/chat` },
       {
-        label:"Appointment booking",
+        label: "Appointment booking",
         icon: TeleAccessIcon,
         path: `/${role}/appointment-booking`,
       },
-       {
+      {
+        label: "Prescription Management",
+        icon: PrescriptionIcon,
+        subMenu: [
+          { label: "Prescription", path: `/${role}/prescription` },
+          { label: "Medicines", path: `/${role}/medicines` },
+        ],
+      },
+      {
         label: "Certificate",
         icon: CertiFicateIcon,
         subMenu: [
           { label: "Sick Certificate", path: `/${role}/sick-certificate` },
           { label: "Death Certificate", path: `/${role}/death-certificate` },
-          { label: "Fitness Certificate", path: `/${role}/fitness-certificate` },
-          { label: "Medical Certificate", path: `/${role}/medical-certificate` },
+          {
+            label: "Fitness Certificate",
+            path: `/${role}/fitness-certificate`,
+          },
+          {
+            label: "Medical Certificate",
+            path: `/${role}/medical-certificate`,
+          },
         ],
       },
-       {
+      {
         label: "Reporting And Analytics",
         icon: ReportIcon,
         path: `/${role}/analytics`,
@@ -83,7 +98,7 @@ const Sidebar = ({ role, onLogout, isSidebarOpen, setIsSidebarOpen }) => {
         path: `/${role}/dashboard`,
       },
       {
-        label:"Today Appointments",
+        label: "Today Appointments",
         icon: TeleAccessIcon,
         path: `/${role}/today-appointments`,
       },
@@ -103,19 +118,32 @@ const Sidebar = ({ role, onLogout, isSidebarOpen, setIsSidebarOpen }) => {
         subMenu: [
           { label: "Monitor Billing", path: `/${role}/monitor-billing` },
           { label: "Payment Process", path: `/${role}/payment-process` },
-          { label: "Medicines", path: `/${role}/medicines` },
           { label: "Diseases", path: `/${role}/diseases` },
           { label: "Discription", path: `/${role}/discription` },
         ],
       },
-       {
+      {
+        label: "Prescription Management",
+        icon: PrescriptionIcon,
+        subMenu: [
+          { label: "Prescription", path: `/${role}/prescription` },
+          { label: "Medicines", path: `/${role}/medicines` },
+        ],
+      },
+      {
         label: "Certificate",
         icon: CertiFicateIcon,
         subMenu: [
           { label: "Sick Certificate", path: `/${role}/sick-certificate` },
           { label: "Death Certificate", path: `/${role}/death-certificate` },
-          { label: "Fitness Certificate", path: `/${role}/fitness-certificate` },
-          { label: "Medical Certificate", path: `/${role}/medical-certificate` },
+          {
+            label: "Fitness Certificate",
+            path: `/${role}/fitness-certificate`,
+          },
+          {
+            label: "Medical Certificate",
+            path: `/${role}/medical-certificate`,
+          },
         ],
       },
       {
@@ -146,19 +174,32 @@ const Sidebar = ({ role, onLogout, isSidebarOpen, setIsSidebarOpen }) => {
         subMenu: [
           { label: "Monitor Billing", path: `/${role}/monitor-billing` },
           { label: "Payment Process", path: `/${role}/payment-process` },
-          { label: "Medicines", path: `/${role}/medicines` },
           { label: "Diseases", path: `/${role}/diseases` },
           { label: "Discription", path: `/${role}/discription` },
         ],
       },
-       {
+        {
+        label: "Prescription Management",
+        icon: PrescriptionIcon,
+        subMenu: [
+          { label: "Prescription", path: `/${role}/prescription` },
+          { label: "Medicines", path: `/${role}/medicines` },
+        ],
+      },
+      {
         label: "Certificate",
         icon: CertiFicateIcon,
         subMenu: [
           { label: "Sick Certificate", path: `/${role}/sick-certificate` },
           { label: "Death Certificate", path: `/${role}/death-certificate` },
-          { label: "Fitness Certificate", path: `/${role}/fitness-certificate` },
-          { label: "Medical Certificate", path: `/${role}/medical-certificate` },
+          {
+            label: "Fitness Certificate",
+            path: `/${role}/fitness-certificate`,
+          },
+          {
+            label: "Medical Certificate",
+            path: `/${role}/medical-certificate`,
+          },
         ],
       },
       {
@@ -167,7 +208,7 @@ const Sidebar = ({ role, onLogout, isSidebarOpen, setIsSidebarOpen }) => {
         path: `/${role}/analytics`,
       },
       {
-        label:"Appointment booking",
+        label: "Appointment booking",
         icon: TeleAccessIcon,
         path: `/${role}/appointment-booking`,
       },
@@ -210,11 +251,19 @@ const Sidebar = ({ role, onLogout, isSidebarOpen, setIsSidebarOpen }) => {
   const handleToggleBilling = () => {
     setOpenBilling(!openBilling);
     setOpenCertificate(false);
+    setOpenPrescription(false);
   };
 
   const handleToggleCertificate = () => {
     setOpenCertificate(!openCertificate);
     setOpenBilling(false);
+    setOpenPrescription(false);
+  };
+
+  const handleTogglePrescription = () => {
+    setOpenPrescription(!openPrescription);
+    setOpenBilling(false);
+    setOpenCertificate(false);
   };
 
   return (
@@ -251,7 +300,8 @@ const Sidebar = ({ role, onLogout, isSidebarOpen, setIsSidebarOpen }) => {
                       <item.icon
                         className="mr-3 transition duration-300 z-20 relative"
                         style={{
-                          fill: activeTab === item.label ? "#0EABEB" : "#818194",
+                          fill:
+                            activeTab === item.label ? "#0EABEB" : "#818194",
                         }}
                       />
                     ) : (
@@ -284,27 +334,41 @@ const Sidebar = ({ role, onLogout, isSidebarOpen, setIsSidebarOpen }) => {
                 ) : (
                   <div>
                     <button
-                      onClick={item.label === "Billing And Payments" ? handleToggleBilling : handleToggleCertificate}
+                      onClick={
+                        item.label === "Billing And Payments"
+                          ? handleToggleBilling
+                          : item.label === "Certificate"
+                          ? handleToggleCertificate
+                          : handleTogglePrescription
+                      }
                       className={`flex items-center w-full px-6 py-4 font-semibold ${
-                        (item.label === "Billing And Payments" && openBilling) || 
-                        (item.label === "Certificate" && openCertificate)
+                        (item.label === "Billing And Payments" && openBilling) ||
+                        (item.label === "Certificate" && openCertificate) ||
+                        (item.label === "Prescription Management" && openPrescription)
                           ? "text-[#0EABEB]"
                           : "hover:text-[#0EABEB] text-[#818194]"
                       }`}
                     >
                       <item.icon
                         className={`mr-4 ${
-                          (item.label === "Billing And Payments" && openBilling) || 
-                          (item.label === "Certificate" && openCertificate)
+                          (item.label === "Billing And Payments" && openBilling) ||
+                          (item.label === "Certificate" && openCertificate) ||
+                          (item.label === "Prescription Management" && openPrescription)
                             ? "text-[#0EABEB]"
                             : "text-[#818194]"
                         }`}
                       />
                       <span>{item.label}</span>
                     </button>
-                    <Collapse 
-                      in={item.label === "Billing And Payments" ? openBilling : openCertificate} 
-                      timeout="auto" 
+                    <Collapse
+                      in={
+                        item.label === "Billing And Payments"
+                          ? openBilling
+                          : item.label === "Certificate"
+                          ? openCertificate
+                          : openPrescription
+                      }
+                      timeout="auto"
                       unmountOnExit
                     >
                       <ul>

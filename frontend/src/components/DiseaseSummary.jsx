@@ -19,7 +19,11 @@ const generateRandomColor = () => {
   for (let i = 0; i < 6; i++) {
     color += letters[Math.floor(Math.random() * 16)];
   }
-  return color;
+  // Convert hex to rgba with 0.7 opacity
+  const r = parseInt(color.slice(1, 3), 16);
+  const g = parseInt(color.slice(3, 5), 16);
+  const b = parseInt(color.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, 0.6)`;
 };
 
 const DiseaseSummary = () => {
@@ -125,7 +129,7 @@ const DiseaseSummary = () => {
 
   return (
     <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md">
-      <h2 className="text-lg font-semibold mb-4">Disease Distribution</h2>
+      <h2 className="text-lg font-semibold mb-4">Disease Summary</h2>
       <div className="text-sm text-gray-600 mb-4">Total Patients: {totalPatients}</div>
       <div className="flex flex-col items-center justify-center">
         {loading ? (

@@ -7,6 +7,7 @@ import PatientsSummary from "../../components/PatientsSummary";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import DiseaseSummary from "../../components/DiseaseSummary";
+import Statement from "../Statement";
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -24,6 +25,7 @@ const AdminDashboard = () => {
           {loading ? <Skeleton height={100} /> : <StatisticsCards />}
           {loading ? <Skeleton height={200} /> : <PatientsStatistics />}
           {loading ? <Skeleton height={300} /> : <AppointmentsList />}
+          {loading ? <Skeleton height={200} /> : <Statement />}
         </div>
 
         {/* Right Panel: Billing Table and Patients Summary */}

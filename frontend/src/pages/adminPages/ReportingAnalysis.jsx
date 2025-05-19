@@ -1,3 +1,4 @@
+import Statement from "../Statement";
 import AppointmentGraph from "./ApointmentGraph";
 import CardData from "./CardData";
 import DoctorCountDepartment from "./DoctorCountDepartment";
@@ -23,6 +24,7 @@ const ReportingAnalysis = () => {
         <DoctorCountDepartment />
         <PatientsAge />
       </div>
+      <Statement />
     </div>
   );
 };

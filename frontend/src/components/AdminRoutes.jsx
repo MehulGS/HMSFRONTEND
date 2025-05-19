@@ -35,6 +35,8 @@ import ChatPage from "../pages/patientPages/ChatPage";
 import PatientDetail from "./PatientDetail";
 import Diseases from "../pages/Diseases";
 import Description from "../pages/Description";
+import PatientDashboard from "../pages/patientPages/PatientDashboard";
+import Prescription from "../pages/Prescription";
 
 const AdminRoutes = ({ onLogout }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -87,6 +89,7 @@ const AdminRoutes = ({ onLogout }) => {
                 path="/reschedule-appointment"
                 element={<RescheduleAppointment />}
               />
+              <Route path="prescription" element={<Prescription />} />
               <Route path="/add-new-doctor" element={<AddDoctorForm />} />
               <Route path="/add-new-patient" element={<AddPatientForm />} />
               <Route
@@ -95,7 +98,7 @@ const AdminRoutes = ({ onLogout }) => {
               />
               <Route path="/edit-doctor/:id" element={<EditDoctor />} />
               <Route path="/edit-patient/:id" element={<EditPatient />} />
-              <Route path="/patient/:id" element={<PatientDetail />} />
+              <Route path="/patient/:id" element={<PatientDashboard />} />
               <Route
                 path="/edit-receiptionist/:id"
                 element={<EditReceiptionist />}

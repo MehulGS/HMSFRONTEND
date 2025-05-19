@@ -26,11 +26,13 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 import SearchResults from "./SearchResults";
 import EditPatient from "./EditPatient";
-import PatientDetail from "./PatientDetail";
+// import PatientDetail from "./PatientDetail";
 import Diseases from "../pages/Diseases";
 import AppointmentPage from "../pages/AppointmentPage";
 import CreatePrescriptionPage from "./CreatePrescriptionPage";
 import Description from "../pages/Description";
+import PatientDashboard from "../pages/patientPages/PatientDashboard";
+import Prescription from "../pages/Prescription";
 
 const DoctorRoutes = ({ onLogout }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -74,7 +76,7 @@ const DoctorRoutes = ({ onLogout }) => {
                 path="/create-prescription/:id"
                 element={<CreatePrescriptionPage />}
               />
-              <Route path="/patient/:id" element={<PatientDetail />} />
+              <Route path="/patient/:id" element={<PatientDashboard />} />
               <Route path="/add-new-patient" element={<AddPatientForm />} />
               <Route
                 path="/add-new-receiptionist"
@@ -85,6 +87,7 @@ const DoctorRoutes = ({ onLogout }) => {
                 element={<EditReceiptionist />}
               />
               <Route path="/monitor-billing" element={<MonitorBilling />} />
+              <Route path="prescription" element={<Prescription />} />
               <Route path="/edit-patient/:id" element={<EditPatient />} />
               <Route path="/select-template" element={<SelectTemplate />} />
               <Route path="/payment-process" element={<PaymentProcess />} />

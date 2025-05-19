@@ -11,8 +11,8 @@ const EditPatient = () => {
     firstName: "",
     lastName: "",
     dateOfBirth: "",
-    heigth: "",
-    weigth: "",
+    height: "",
+    weight: "",
     bloodGroup: "",
     phoneNumber: "",
     gender: "",
@@ -67,8 +67,9 @@ const EditPatient = () => {
           },
         });
 
-        if (response.data) {
-          const patient = response.data;
+
+        if (response.data.data) {
+          const patient = response.data.data;
 
           // Auto-populate state and city based on country
           const selectedCountry = countryData.find(
@@ -88,15 +89,15 @@ const EditPatient = () => {
             firstName: patient.firstName || "",
             lastName: patient.lastName || "",
             dateOfBirth: formatDateForInput(patient.dateOfBirth) || "",
-            heigth: patient.heigth || "",
-            weigth: patient.weigth || "",
+            height: patient.height || "",
+            weight: patient.weight || "",
             bloodGroup: patient.bloodGroup || "",
             phoneNumber: patient.phoneNumber || "",
             gender: patient.gender || "",
             address: patient.address || "",
             age: patient.age || "",
             email: patient.email || "",
-            adminhospital: patient.adminhospital || "",
+            adminhospital: patient.adminhospital?._id || "",
             patientId: patient.patientUniqueId || "",
           });
         }
@@ -156,14 +157,14 @@ const EditPatient = () => {
 
   return (
     <div className="bg-gray-100 min-h-screen">
-      <div className="bg-gradient-to-r from-[#f9fbff] to-[#eef5ff] min-h-screen p-4 md:p-8">
-        <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-6 md:p-10">
-          <h2 className="text-3xl font-semibold text-[#0eabeb] text-center mb-8">
+      <div className="bg-gradient-to-r from-[#f9fbff] to-[#eef5ff] min-h-screen p-2 sm:p-4 md:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-lg p-3 sm:p-4 md:p-6 lg:p-8">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-[#0eabeb] text-center mb-4 sm:mb-6 md:mb-8">
             🏥 Edit Patient
           </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
               <InputField
                 id="patientId"
                 label="Patient ID"
@@ -192,15 +193,15 @@ const EditPatient = () => {
                 disabled
               />
               <InputField
-                id="heigth"
+                id="height"
                 label="Height (cm)"
-                value={formData.heigth}
+                value={formData.height}
                 onChange={handleInputChange}
               />
               <InputField
-                id="weigth"
+                id="weight"
                 label="Weight (kg)"
-                value={formData.weigth}
+                value={formData.weight}
                 onChange={handleInputChange}
               />
               <InputField
@@ -253,12 +254,12 @@ const EditPatient = () => {
               />
             </div>
 
-            <div className="text-center">
+            <div className="text-center mt-6 sm:mt-8">
               <button
                 type="submit"
-                className="inline-flex items-center gap-2 bg-[#0eabeb] text-white hover:bg-[#0984c7] px-8 py-3 rounded-xl text-lg font-medium transition duration-300"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#0eabeb] text-white hover:bg-[#0984c7] px-4 sm:px-6 md:px-8 py-2 sm:py-3 rounded-xl text-base sm:text-lg font-medium transition duration-300"
               >
-                <FiUpload className="text-xl" />
+                <FiUpload className="text-lg sm:text-xl" />
                 Update Patient
               </button>
             </div>
@@ -279,12 +280,12 @@ const InputField = ({
   onChange,
   disabled = false,
 }) => (
-  <div className="relative mb-4">
+  <div className="relative mb-3 sm:mb-4">
     <input
       type={type}
       id={id}
       name={id}
-      className={`peer w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none ${
+      className={`peer w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-xl focus:outline-none ${
         disabled ? "bg-gray-100 cursor-not-allowed" : ""
       }`}
       placeholder={placeholder || `Enter ${label}`}
@@ -294,7 +295,7 @@ const InputField = ({
     />
     <label
       htmlFor={id}
-      className="absolute left-3 -top-2.5 px-1 bg-white text-sm font-medium text-[#030229] peer-focus:-top-2.5 peer-focus:left-3 transition-all duration-200"
+      className="absolute left-3 -top-2.5 px-1 bg-white text-xs sm:text-sm font-medium text-[#030229] peer-focus:-top-2.5 peer-focus:left-3 transition-all duration-200"
     >
       {label}
     </label>
@@ -303,11 +304,11 @@ const InputField = ({
 
 // SelectField component
 const SelectField = ({ id, label, options, value, onChange }) => (
-  <div className="relative mb-4">
+  <div className="relative mb-3 sm:mb-4">
     <select
       id={id}
       name={id}
-      className="peer w-full px-4 py-2 border border-gray-300 rounded-xl text-[#030229] focus:outline-none"
+      className="peer w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-xl text-[#030229] focus:outline-none"
       value={value}
       onChange={onChange}
     >
@@ -320,7 +321,7 @@ const SelectField = ({ id, label, options, value, onChange }) => (
     </select>
     <label
       htmlFor={id}
-      className="absolute left-3 -top-2.5 px-1 bg-white text-sm font-medium text-[#030229] peer-focus:-top-2.5 peer-focus:left-3 transition-all duration-200"
+      className="absolute left-3 -top-2.5 px-1 bg-white text-xs sm:text-sm font-medium text-[#030229] peer-focus:-top-2.5 peer-focus:left-3 transition-all duration-200"
     >
       {label}
     </label>

@@ -30,6 +30,8 @@ import EditPatient from "../EditPatient";
 import PatientDetail from "../PatientDetail";
 import Diseases from "../../pages/Diseases";
 import Description from "../../pages/Description";
+import PatientDashboard from "../../pages/patientPages/PatientDashboard";
+import Prescription from "../../pages/Prescription";
 
 
 const ReceptionRoutes = ({ onLogout }) => {
@@ -60,6 +62,7 @@ const ReceptionRoutes = ({ onLogout }) => {
               <Route path="/doctor-management" element={<DoctorManagement />} />
               <Route path="/patient-management" element={<PatientManagement />} />
               <Route path="/appointment-booking" element={<AppointmentBookingPage />} />
+              <Route path="prescription" element={<Prescription />} />
               <Route path="/book-appointment" element={< BookAppointment/>} />
               <Route path="/reschedule-appointment" element={<RescheduleAppointment />} />
               <Route path="/add-new-patient" element={<AddPatientForm />} />
@@ -73,7 +76,7 @@ const ReceptionRoutes = ({ onLogout }) => {
               <Route path="/diseases" element={<Diseases />} />
               <Route path="/discription" element={<Description />} />
               <Route path="/edit-patient/:id" element={<EditPatient />} />
-              <Route path="/patient/:id" element={<PatientDetail />} />
+              <Route path="/patient/:id" element={<PatientDashboard />} />
               <Route path="/invoice/:billId" element={<Invoice />} />
               <Route path="/insurance/:id" element={<InsuranceDetail />} />
               <Route path="/payment/edit/:id" element={<EditBill />} />

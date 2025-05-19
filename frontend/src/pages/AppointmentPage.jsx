@@ -15,6 +15,7 @@ const AppointmentPage = () => {
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("Pending"); // Add status filter state
 
   // Get user role from token
   useEffect(() => {
@@ -42,7 +43,8 @@ const AppointmentPage = () => {
       );
 
       setAppointments(todaysAppointments);
-      setFilteredAppointments(todaysAppointments);
+      // Apply initial status filter
+      filterAppointments(todaysAppointments, statusFilter, searchQuery);
     } catch (error) {
       console.error("Error fetching appointments:", error);
     } finally {
@@ -50,21 +52,32 @@ const AppointmentPage = () => {
     }
   };
 
-  // Search functionality
-  useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredAppointments(appointments);
-      return;
+  // Function to filter appointments based on status and search query
+  const filterAppointments = (appointmentsToFilter, status, query) => {
+    let filtered = appointmentsToFilter;
+
+    // Apply status filter
+    if (status !== "all") {
+      filtered = filtered.filter(appointment => appointment.status === status);
     }
 
-    const query = searchQuery.toLowerCase();
-    const filtered = appointments.filter(appointment => 
-      appointment.patientName?.toLowerCase().includes(query) ||
-      appointment.patientUniqueId?.toLowerCase().includes(query) ||
-      appointment.patientPhoneNumber?.includes(query)
-    );
+    // Apply search filter if query exists
+    if (query.trim() !== "") {
+      const searchQuery = query.toLowerCase();
+      filtered = filtered.filter(appointment => 
+        appointment.patientName?.toLowerCase().includes(searchQuery) ||
+        appointment.patientUniqueId?.toLowerCase().includes(searchQuery) ||
+        appointment.patientPhoneNumber?.includes(searchQuery)
+      );
+    }
+
     setFilteredAppointments(filtered);
-  }, [searchQuery, appointments]);
+  };
+
+  // Update filtered appointments when search query or status filter changes
+  useEffect(() => {
+    filterAppointments(appointments, statusFilter, searchQuery);
+  }, [searchQuery, statusFilter, appointments]);
 
   useEffect(() => {
     fetchTodaysAppointments();
@@ -74,15 +87,51 @@ const AppointmentPage = () => {
     <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md w-full">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
         <h2 className="text-lg sm:text-xl font-semibold">Today's Appointments</h2>
-        <div className="relative w-full sm:w-96">
-          <input
-            type="text"
-            placeholder="Search by patient name, ID, or phone number..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+          {/* Status Filter Buttons */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setStatusFilter("Pending")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                statusFilter === "Pending"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              Pending
+            </button>
+            <button
+              onClick={() => setStatusFilter("Done")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                statusFilter === "Done"
+                  ? "bg-green-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              Done
+            </button>
+            <button
+              onClick={() => setStatusFilter("all")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                statusFilter === "all"
+                  ? "bg-gray-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              All
+            </button>
+          </div>
+          {/* Search Input */}
+          <div className="relative w-full sm:w-96">
+            <input
+              type="text"
+              placeholder="Search by patient name, ID, or phone number..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          </div>
         </div>
       </div>
 
@@ -110,7 +159,9 @@ const AppointmentPage = () => {
         <div className="flex flex-col items-center justify-center">
           <img src={noAppointment} alt="No Appointments" className="w-32 sm:w-48 mb-4" />
           <p className="text-gray-500 text-sm sm:text-base">
-            {searchQuery ? "No matching appointments found" : "No Appointments Found for Today"}
+            {searchQuery 
+              ? "No matching appointments found" 
+              : `No ${statusFilter === "all" ? "" : statusFilter} appointments found for today`}
           </p>
         </div>
       )}

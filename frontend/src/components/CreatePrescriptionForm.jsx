@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { IconButton, Autocomplete, TextField } from "@mui/material";
+import { IconButton, Autocomplete, TextField, Modal, Box, Button } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -12,6 +12,12 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
   const [medicines, setMedicines] = useState([]); // Add state for medicines list
   const [diseases, setDiseases] = useState([]);
   const [descriptions, setDescriptions] = useState([]);
+  const [isDiseaseModalOpen, setIsDiseaseModalOpen] = useState(false);
+  const [isDescriptionModalOpen, setIsDescriptionModalOpen] = useState(false);
+  const [newDiseaseValue, setNewDiseaseValue] = useState("");
+  const [newDescriptionValue, setNewDescriptionValue] = useState("");
+  const [selectedDiseases, setSelectedDiseases] = useState([]); // New state for multiple diseases
+  const [selectedDescriptions, setSelectedDescriptions] = useState([]); // New state for multiple descriptions
 
   // State to manage form values
   const [formValues, setFormValues] = useState({
@@ -20,8 +26,8 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
     patientAge: "",
     patientGender: "",
     patientUniqueId: "",
-    disease: "",
-    description: "",
+    diseases: [],
+    descriptions: [], // Changed from single description to array
     amount: "",
     followUpDate: "",
     followUpTime: "",
@@ -194,33 +200,99 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
 
   const handleDiseaseChange = async (_, newValue) => {
     if (newValue && !diseases.find(d => d.name === newValue)) {
-      try {
-        // Add new disease to the backend
-        const response = await api.post("/diseases", { name: newValue });
-        const newDisease = response.data.data;
-        setDiseases(prev => [...prev, newDisease]);
-        setFormValues(prev => ({ ...prev, disease: newDisease.name }));
-      } catch (error) {
-        console.error("Error adding new disease:", error);
+      setNewDiseaseValue(newValue);
+      setIsDiseaseModalOpen(true);
+    } else if (newValue) {
+      // Add the disease to selectedDiseases if it's not already there
+      if (!selectedDiseases.find(d => d.name === newValue)) {
+        const diseaseToAdd = diseases.find(d => d.name === newValue);
+        setSelectedDiseases(prev => [...prev, diseaseToAdd]);
+        setFormValues(prev => ({
+          ...prev,
+          diseases: [...prev.diseases, diseaseToAdd]
+        }));
       }
-    } else {
-      setFormValues(prev => ({ ...prev, disease: newValue || "" }));
     }
+  };
+
+  const handleRemoveDisease = (diseaseToRemove) => {
+    setSelectedDiseases(prev => prev.filter(d => d.name !== diseaseToRemove.name));
+    setFormValues(prev => ({
+      ...prev,
+      diseases: prev.diseases.filter(d => d.name !== diseaseToRemove.name)
+    }));
   };
 
   const handleDescriptionChange = async (_, newValue) => {
     if (newValue && !descriptions.find(d => d.description === newValue)) {
-      try {
-        // Add new description to the backend
-        const response = await api.post("/discription", { description: newValue });
-        const newDescription = response.data.data;
-        setDescriptions(prev => [...prev, newDescription]);
-        setFormValues(prev => ({ ...prev, description: newDescription.description }));
-      } catch (error) {
-        console.error("Error adding new description:", error);
+      setNewDescriptionValue(newValue);
+      setIsDescriptionModalOpen(true);
+    } else if (newValue) {
+      // Add the description to selectedDescriptions if it's not already there
+      if (!selectedDescriptions.find(d => d.description === newValue)) {
+        const descriptionToAdd = descriptions.find(d => d.description === newValue);
+        if (descriptionToAdd) {
+          setSelectedDescriptions(prev => [...prev, descriptionToAdd]);
+          setFormValues(prev => ({
+            ...prev,
+            descriptions: [...prev.descriptions, descriptionToAdd]
+          }));
+        }
       }
-    } else {
-      setFormValues(prev => ({ ...prev, description: newValue || "" }));
+    }
+  };
+
+  const handleRemoveDescription = (descriptionToRemove) => {
+    setSelectedDescriptions(prev => prev.filter(d => d.description !== descriptionToRemove.description));
+    setFormValues(prev => ({
+      ...prev,
+      descriptions: prev.descriptions.filter(d => d.description !== descriptionToRemove.description)
+    }));
+  };
+
+  const handleCreateDisease = async () => {
+    try {
+      const response = await api.post("/diseases", { name: newDiseaseValue });
+      const newDisease = response.data.disease;
+      if (newDisease) {
+        setDiseases(prev => [...prev, newDisease]);
+        setSelectedDiseases(prev => [...prev, newDisease]);
+        setFormValues(prev => ({
+          ...prev,
+          diseases: [...prev.diseases, newDisease]
+        }));
+        setIsDiseaseModalOpen(false);
+        setNewDiseaseValue("");
+        toast.success('Disease created successfully!');
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (error) {
+      console.error("Error adding new disease:", error);
+      toast.error(error.response?.data?.message || 'Failed to create disease');
+    }
+  };
+
+  const handleCreateDescription = async () => {
+    try {
+      const response = await api.post("/description", { description: newDescriptionValue });
+      const newDescription = response.data.description || response.data;
+      if (newDescription) {
+        setDescriptions(prev => [...prev, newDescription]);
+        setSelectedDescriptions(prev => [...prev, newDescription]);
+        setFormValues(prev => ({
+          ...prev,
+          descriptions: [...prev.descriptions, newDescription]
+        }));
+        setIsDescriptionModalOpen(false);
+        setNewDescriptionValue("");
+        toast.success('Description created successfully!');
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (error) {
+      console.error("Error adding new description:", error);
+      toast.error(error.response?.data?.message || 'Failed to create description');
     }
   };
 
@@ -230,6 +302,8 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
     if (!formValues.patientName) formErrors.patientName = "Patient name is required.";
     if (!formValues.patientAge || formValues.patientAge <= 0) formErrors.patientAge = "Valid age is required.";
     if (!formValues.patientGender) formErrors.patientGender = "Gender is required.";
+    if (formValues.diseases.length === 0) formErrors.diseases = "At least one disease is required.";
+    if (formValues.descriptions.length === 0) formErrors.descriptions = "At least one description is required.";
 
     formValues.medicines.forEach((medicine, index) => {
       if (medicine.isEnabled) {
@@ -275,28 +349,32 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
 
       console.log('Formatted medicines:', formattedMedicines);
 
-      // Format diseases data
-      const diseaseDetails = diseases.find(d => d.name === formValues.disease);
-      const formattedDiseases = diseaseDetails ? [{
-        _id: diseaseDetails._id,
-        name: diseaseDetails.name,
-        description: diseaseDetails.description || ""
-      }] : [];
+      // Format diseases data - now handling multiple diseases
+      const formattedDiseases = formValues.diseases.map(disease => ({
+        _id: disease._id,
+        name: disease.name,
+        description: disease.description || ""
+      }));
 
       console.log('Formatted diseases:', formattedDiseases);
 
-      // Format description data
-      const descriptionDetails = descriptions.find(d => d.description === formValues.description);
-      
-      // Format follow-up data
-      const followUpData = {
-        required: true,
+      // Format descriptions data - use the _id directly from the description object
+      const formattedDescriptions = formValues.descriptions.map(description => ({
+        descriptionId: description._id, // Use _id directly from the description object
+        description: description.description
+      }));
+
+      console.log('Formatted descriptions:', formattedDescriptions);
+
+      // Format follow-up data - make it conditional and truly optional
+      const followUpData = formValues.followUpDate && formValues.followUpTime ? {
+        required: false,
         date: formValues.followUpDate,
         time: convertTo12Hour(formValues.followUpTime),
-        reason: formValues.additionalNote || "",
+        reason: formValues.additionalNote ? ` ${formValues.additionalNote}` : "",
         status: 'scheduled',
         notificationSent: false
-      };
+      } : null;
 
       console.log('Follow-up data:', followUpData);
 
@@ -305,10 +383,10 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
         appointmentId: id,
         medicines: formattedMedicines,
         diseases: formattedDiseases,
+        descriptions: formattedDescriptions,
         followUp: followUpData,
         amount: formValues.amount || 0,
-        addistionalNotes: formValues.additionalNote || "",
-        descriptionId: descriptionDetails?._id
+        addistionalNotes: formValues.additionalNote ? ` ${formValues.additionalNote}` : "",
       };
 
       // Log the data being sent
@@ -335,6 +413,19 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
       });
       toast.error(error.response?.data?.message || 'Error creating prescription');
     }
+  };
+
+  // Modal styles
+  const modalStyle = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'background.paper',
+    boxShadow: 24,
+    p: 4,
+    borderRadius: 2,
   };
 
   return (
@@ -407,63 +498,179 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
       {/* Disease and Description */}
       <div className="grid grid-cols-2 gap-4">
         <div className="relative mb-2">
-          <Autocomplete
-            freeSolo
-            options={diseases.map(disease => disease.name)}
-            value={formValues.disease}
-            onChange={handleDiseaseChange}
-            getOptionLabel={(option) => {
-              if (typeof option === 'string') return option;
-              return option.name || '';
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                placeholder="Select or enter disease"
-                className="w-full"
-                InputProps={{
-                  ...params.InputProps,
-                  className: "peer w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none"
-                }}
-              />
-            )}
-          />
+          <div className="flex gap-2 mb-2">
+            <Autocomplete
+              freeSolo
+              options={diseases.map(disease => disease.name)}
+              value=""
+              onChange={handleDiseaseChange}
+              getOptionLabel={(option) => {
+                if (typeof option === 'string') return option;
+                return option.name || '';
+              }}
+              renderOption={(props, option) => {
+                const isNew = !diseases.find(d => d.name === option);
+                return (
+                  <li {...props} className="flex justify-between items-center p-2">
+                    <span>{option}</span>
+                    {isNew && (
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setNewDiseaseValue(option);
+                          setIsDiseaseModalOpen(true);
+                        }}
+                        sx={{ ml: 1 }}
+                      >
+                        Create New
+                      </Button>
+                    )}
+                  </li>
+                );
+              }}
+              renderInput={(params) => (
+                <div className="relative flex-grow">
+                  <TextField
+                    {...params}
+                    placeholder="Add disease"
+                    className="w-full"
+                    InputProps={{
+                      ...params.InputProps,
+                      className: "peer w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none"
+                    }}
+                  />
+                </div>
+              )}
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => {
+                setNewDiseaseValue("");
+                setIsDiseaseModalOpen(true);
+              }}
+              sx={{ minWidth: '120px' }}
+            >
+              Create New
+            </Button>
+          </div>
           <label className="absolute left-3 -top-2.5 px-1 bg-white text-sm font-medium text-gray-500 transition-all duration-200">
-            Disease
+            Add Disease
           </label>
+          {errors.diseases && <p className="text-red-500 text-sm">{errors.diseases}</p>}
+          
+          {/* Display selected diseases */}
+          <div className="mt-2 flex flex-wrap gap-2">
+            {selectedDiseases.map((disease) => (
+              <div
+                key={disease._id}
+                className="flex items-center gap-1 bg-blue-100 text-blue-800 px-3 py-1 rounded-full"
+              >
+                <span>{disease.name}</span>
+                <IconButton
+                  size="small"
+                  onClick={() => handleRemoveDisease(disease)}
+                  className="text-blue-800 hover:text-blue-900"
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="relative mb-2">
-          <Autocomplete
-            freeSolo
-            options={descriptions.map(desc => desc.description)}
-            value={formValues.description}
-            onChange={handleDescriptionChange}
-            getOptionLabel={(option) => {
-              if (typeof option === 'string') return option;
-              return option.description || '';
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                placeholder="Select or enter description"
-                className="w-full"
-                InputProps={{
-                  ...params.InputProps,
-                  className: "peer w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none"
-                }}
-              />
-            )}
-          />
+          <div className="flex gap-2 mb-2">
+            <Autocomplete
+              freeSolo
+              options={descriptions.map(desc => desc.description)}
+              value=""
+              onChange={handleDescriptionChange}
+              getOptionLabel={(option) => {
+                if (typeof option === 'string') return option;
+                return option.description || '';
+              }}
+              renderOption={(props, option) => {
+                const isNew = !descriptions.find(d => d.description === option);
+                return (
+                  <li {...props} className="flex justify-between items-center p-2">
+                    <span>{option}</span>
+                    {isNew && (
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setNewDescriptionValue(option);
+                          setIsDescriptionModalOpen(true);
+                        }}
+                        sx={{ ml: 1 }}
+                      >
+                        Create New
+                      </Button>
+                    )}
+                  </li>
+                );
+              }}
+              renderInput={(params) => (
+                <div className="relative flex-grow">
+                  <TextField
+                    {...params}
+                    placeholder="Add description"
+                    className="w-full"
+                    InputProps={{
+                      ...params.InputProps,
+                      className: "peer w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none"
+                    }}
+                  />
+                </div>
+              )}
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => {
+                setNewDescriptionValue("");
+                setIsDescriptionModalOpen(true);
+              }}
+              sx={{ minWidth: '120px' }}
+            >
+              Create New
+            </Button>
+          </div>
           <label className="absolute left-3 -top-2.5 px-1 bg-white text-sm font-medium text-gray-500 transition-all duration-200">
-            Description
+            Add Description
           </label>
+          {errors.descriptions && <p className="text-red-500 text-sm">{errors.descriptions}</p>}
+          
+          {/* Display selected descriptions */}
+          <div className="mt-2 flex flex-wrap gap-2">
+            {selectedDescriptions.map((description) => (
+              <div
+                key={description._id}
+                className="flex items-center gap-1 bg-green-100 text-green-800 px-3 py-1 rounded-full"
+              >
+                <span>{description.description}</span>
+                <IconButton
+                  size="small"
+                  onClick={() => handleRemoveDescription(description)}
+                  className="text-green-800 hover:text-green-900"
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Next Follow Up Section */}
+      {/* Next Follow Up Section - Make fields optional */}
       <div className="border-t border-gray-200 pt-6">
-        <h2 className="text-2xl font-bold mb-4">Next Follow Up</h2>
+        <h2 className="text-2xl font-bold mb-4">Next Follow Up (Optional)</h2>
         <div className="grid grid-cols-2 gap-4">
           <div className="relative mb-2">
             <input
@@ -474,10 +681,9 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
               min={new Date().toISOString().split('T')[0]}
               className="peer w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none"
               placeholder=" "
-              required
             />
             <label className="absolute left-3 -top-2.5 px-1 bg-white text-sm font-medium text-gray-500 transition-all duration-200">
-              Follow Up Date
+              Follow Up Date (Optional)
             </label>
           </div>
 
@@ -489,10 +695,9 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
               onChange={handleChange}
               className="peer w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none"
               placeholder=" "
-              required
             />
             <label className="absolute left-3 -top-2.5 px-1 bg-white text-sm font-medium text-gray-500 transition-all duration-200">
-              Follow Up Time
+              Follow Up Time (Optional)
             </label>
           </div>
         </div>
@@ -596,10 +801,10 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
         <textarea
           name="additionalNote"
           className="peer w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-0 resize-none"
-          placeholder=" "
+          placeholder="Enter any additional notes, follow-up instructions, or special considerations for the patient..."
           value={formValues.additionalNote}
           onChange={handleChange}
-          rows="2"
+          rows="3"
         />
         <label
           htmlFor="additionalNote"
@@ -631,6 +836,66 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
       >
         Send Prescription
       </button>
+
+      {/* Disease Creation Modal */}
+      <Modal
+        open={isDiseaseModalOpen}
+        onClose={() => setIsDiseaseModalOpen(false)}
+        aria-labelledby="disease-modal-title"
+      >
+        <Box sx={modalStyle}>
+          <h2 id="disease-modal-title" className="text-xl font-bold mb-4">Create New Disease</h2>
+          <TextField
+            fullWidth
+            label="Disease Name"
+            value={newDiseaseValue}
+            onChange={(e) => setNewDiseaseValue(e.target.value)}
+            className="mb-4"
+            autoFocus
+          />
+          <div className="flex justify-end gap-2">
+            <Button onClick={() => setIsDiseaseModalOpen(false)}>Cancel</Button>
+            <Button 
+              variant="contained" 
+              onClick={handleCreateDisease}
+              disabled={!newDiseaseValue.trim()}
+            >
+              Create Disease
+            </Button>
+          </div>
+        </Box>
+      </Modal>
+
+      {/* Description Creation Modal */}
+      <Modal
+        open={isDescriptionModalOpen}
+        onClose={() => setIsDescriptionModalOpen(false)}
+        aria-labelledby="description-modal-title"
+      >
+        <Box sx={modalStyle}>
+          <h2 id="description-modal-title" className="text-xl font-bold mb-4">Create New Description</h2>
+          <TextField
+            fullWidth
+            label="Description"
+            value={newDescriptionValue}
+            onChange={(e) => setNewDescriptionValue(e.target.value)}
+            className="mb-4"
+            multiline
+            rows={3}
+            autoFocus
+          />
+          <div className="flex justify-end gap-2">
+            <Button onClick={() => setIsDescriptionModalOpen(false)}>Cancel</Button>
+            <Button 
+              variant="contained" 
+              onClick={handleCreateDescription}
+              disabled={!newDescriptionValue.trim()}
+            >
+              Create Description
+            </Button>
+          </div>
+        </Box>
+      </Modal>
     </form>
   );
 };
