@@ -50,7 +50,7 @@ const TestReportsPage = () => {
   }, [patientId]);
 
   return (
-    <div className="bg-white p-4 md:p-6 rounded-xl shadow-lg h-full">
+    <div className="bg-white p-4 md:p-6 rounded-xl shadow-lg">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl md:text-2xl font-semibold">All Test Reports</h2>
       </div>

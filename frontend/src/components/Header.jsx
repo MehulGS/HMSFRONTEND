@@ -10,6 +10,63 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Home from "../assets/images/home-2.png";
 import api from "../api/api";
+import { io } from "socket.io-client";
+
+let socket = null;
+
+const initializeSocket = () => {
+  if (socket) return socket;
+
+  // Get token from localStorage
+  const token = localStorage.getItem("token");
+  if (!token) return null;
+
+  // Create socket connection with configuration
+  socket = io("https://46tb8kl9-8000.inc1.devtunnels.ms/", {
+    withCredentials: true,
+    transports: ["websocket"],
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
+    auth: {
+      token: token,
+    },
+    extraHeaders: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  // Socket event handlers
+  socket.on("connect", () => {
+    console.log("Socket connected successfully");
+  });
+
+  socket.on("connect_error", (error) => {
+    console.error("Socket connection error:", error);
+    // Only clear token and redirect if it's an authentication error
+    if (error.message === "Authentication token required" || error.message === "Invalid token") {
+      if (window.location.pathname !== "/") {
+        localStorage.removeItem("token");
+        window.location.href = "/";
+      }
+    }
+  });
+
+  socket.on("disconnect", (reason) => {
+    console.log("Socket disconnected:", reason);
+  });
+
+  return socket;
+};
+
+// Function to update token
+export const updateSocketToken = (newToken) => {
+  if (!socket) return;
+  
+  socket.auth.token = newToken;
+  socket.io.opts.extraHeaders.Authorization = `Bearer ${newToken}`;
+  socket.disconnect().connect();
+};
 
 const Header = ({ activeMenu, onSearch, toggleSidebar }) => {
   const [userName, setUserName] = useState("");
@@ -24,18 +81,33 @@ const Header = ({ activeMenu, onSearch, toggleSidebar }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const notificationRef = useRef(null);
-  const wsRef = useRef(null);
+  const socketRef = useRef(null);
 
-  const location = useLocation(); // Access the current location (route)
+  const location = useLocation();
 
+  // Socket initialization and event listener setup
   useEffect(() => {
-    // Fetch initial notifications
-    fetchNotifications();
+    // Initialize socket connection
+    socketRef.current = initializeSocket();
 
-    // Setup WebSocket connection for real-time notifications
-    setupWebSocket();
+    // Set up notification listener
+    if (socketRef.current) {
+      socketRef.current.on("new_notification", (newNotification) => {
+        setNotifications(prev => [newNotification, ...prev]);
+        setUnreadCount(prev => prev + 1);
+        console.log(newNotification);
+      });
+    }
 
-    // Click outside handler for notification dropdown
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.off("new_notification");
+      }
+    };
+  }, []); // Empty dependency array ensures this runs only once
+
+  // Click outside handler setup
+  useEffect(() => {
     const handleClickOutside = (event) => {
       if (notificationRef.current && !notificationRef.current.contains(event.target)) {
         setIsNotificationOpen(false);
@@ -45,63 +117,8 @@ const Header = ({ activeMenu, onSearch, toggleSidebar }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
     };
   }, []);
-
-  const setupWebSocket = () => {
-    // Replace with your WebSocket server URL
-    wsRef.current = new WebSocket('ws://your-websocket-server');
-
-    wsRef.current.onmessage = (event) => {
-      const newNotification = JSON.parse(event.data);
-      setNotifications(prev => [newNotification, ...prev]);
-      setUnreadCount(prev => prev + 1);
-      
-      // Show toast for new notification
-      toast.info(`New notification: ${newNotification.message}`, {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-    };
-  };
-
-  const fetchNotifications = async () => {
-    try {
-      const response = await api.get('/notifications', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      setNotifications(response.data);
-      setUnreadCount(response.data.filter(n => !n.read).length);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    }
-  };
-
-  const markAsRead = async (notificationId) => {
-    try {
-      await api.patch(`/notifications/${notificationId}/read`, {}, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      
-      setNotifications(prev => 
-        prev.map(notification => 
-          notification.id === notificationId 
-            ? { ...notification, read: true }
-            : notification
-        )
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-  };
 
   const formatTimeAgo = (date) => {
     const now = new Date();
@@ -272,11 +289,8 @@ const Header = ({ activeMenu, onSearch, toggleSidebar }) => {
                 {notifications.length > 0 ? (
                   notifications.map((notification) => (
                     <div
-                      key={notification.id}
-                      className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
-                        !notification.read ? 'bg-blue-50' : ''
-                      }`}
-                      onClick={() => markAsRead(notification.id)}
+                      key={notification._id}
+                      className="p-4 border-b border-gray-100 hover:bg-gray-50"
                     >
                       <div className="flex justify-between items-start">
                         <p className="text-sm text-gray-800">{notification.message}</p>
@@ -284,11 +298,6 @@ const Header = ({ activeMenu, onSearch, toggleSidebar }) => {
                           {formatTimeAgo(notification.createdAt)}
                         </span>
                       </div>
-                      {!notification.read && (
-                        <div className="mt-1">
-                          <span className="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
-                        </div>
-                      )}
                     </div>
                   ))
                 ) : (
@@ -297,23 +306,6 @@ const Header = ({ activeMenu, onSearch, toggleSidebar }) => {
                   </div>
                 )}
               </div>
-              {notifications.length > 0 && (
-                <div className="p-2 border-t border-gray-200">
-                  <button
-                    onClick={() => {
-                      // Mark all as read functionality
-                      notifications.forEach(notification => {
-                        if (!notification.read) {
-                          markAsRead(notification.id);
-                        }
-                      });
-                    }}
-                    className="w-full text-center text-sm text-[#0eabeb] hover:text-[#0a8cbb] py-2"
-                  >
-                    Mark all as read
-                  </button>
-                </div>
-              )}
             </div>
           )}
         </div>

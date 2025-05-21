@@ -501,7 +501,7 @@ const AppointmentBookingPage = () => {
   };
 
   return (
-    <div className="bg-white p-4 md:p-6 rounded-xl shadow-lg h-full">
+    <div className="bg-white p-4 md:p-6 rounded-xl shadow-lg">
       {/* Tabs for Appointment Types */}
       <div className="flex flex-wrap md:space-x-4 border-b mb-4">
         {Object.keys(TAB_STATUS_MAPPING).map((tab) => (

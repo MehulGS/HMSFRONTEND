@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FaEye, FaDollarSign, FaEdit, FaSearch } from "react-icons/fa";
+import { FaEye, FaDollarSign, FaEdit, FaSearch, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import api from "../../api/api";
@@ -19,6 +19,9 @@ const PaymentProcess = () => {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("All");
   const [selectedPaymentType, setSelectedPaymentType] = useState("Cash");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [selectedRow, setSelectedRow] = useState(null);
   const token = localStorage.getItem("token");
   const decoded = jwtDecode(token);
   const role = decoded.role;
@@ -40,6 +43,10 @@ const PaymentProcess = () => {
     };
     fetchBillingData();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [itemsPerPage, statusFilter]);
 
   const handleOpenPaymentModal = (bill) => {
     if (bill.status === "Paid") return;
@@ -137,44 +144,81 @@ const PaymentProcess = () => {
     // Check each field, handling null/undefined values
     const billNumber = (bill.billNumber || "").toLowerCase();
     const patientName = (bill.patientName || "").toLowerCase();
-    const diseaseName = (bill.diseaseName || "").toLowerCase();
     const status = (bill.status || "Unpaid").toLowerCase();
     const phoneNumber = (bill.patientPhoneNumber || "").toLowerCase();
     const date = bill.billDate
       ? new Date(bill.billDate).toLocaleDateString()
       : "";
-    const time = (bill.billTime || "").toLowerCase();
 
     // Return true if any field matches the search term
     return (
       billNumber.includes(searchTermLower) ||
       patientName.includes(searchTermLower) ||
-      diseaseName.includes(searchTermLower) ||
       status.includes(searchTermLower) ||
       phoneNumber.includes(searchTermLower) ||
-      date.toLowerCase().includes(searchTermLower) ||
-      time.includes(searchTermLower)
+      date.toLowerCase().includes(searchTermLower)
     );
   });
 
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const paginatedBills = filteredBillingData.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredBillingData.length / itemsPerPage);
+
+  // Pagination controls
+  const getPageNumbers = () => {
+    const maxVisiblePages = 5;
+    if (totalPages <= maxVisiblePages) {
+      return [...Array(totalPages)].map((_, i) => i + 1);
+    }
+    if (currentPage <= 3) {
+      return [1, 2, 3, 4, "...", totalPages];
+    }
+    if (currentPage >= totalPages - 2) {
+      return [
+        1,
+        "...",
+        totalPages - 3,
+        totalPages - 2,
+        totalPages - 1,
+        totalPages,
+      ];
+    }
+    return [
+      1,
+      "...",
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+      "...",
+      totalPages,
+    ];
+  };
+
+  // Row selection (highlight)
+  const handleRowClick = (billId) => {
+    setSelectedRow((prev) => (prev === billId ? null : billId));
+  };
+
   return (
-    <div className="p-4 md:p-6 bg-white rounded-2xl shadow-md h-full">
+    <div className="p-2 md:p-6 bg-white rounded-2xl shadow-md w-full max-w-full">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-4 space-y-4 md:space-y-0">
-        <h2 className="text-lg md:text-xl font-semibold text-[#030229]">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 space-y-3 md:space-y-0">
+        <h2 className="text-base md:text-xl font-semibold text-[#030229] text-center md:text-left">
           Monitor Billing
         </h2>
-        <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-4 w-full md:max-w-lg">
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
           {/* Status Filter Buttons */}
-          <div className="flex space-x-2 w-full md:w-auto">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-center md:justify-start">
             {["All", "Paid", "Unpaid"].map((status) => (
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-full text-xs md:text-sm font-medium transition-colors border ${
                   statusFilter === status
-                    ? "bg-[#0eabeb] text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    ? "bg-[#0eabeb] text-white border-[#0eabeb]"
+                    : "bg-white text-gray-600 border-gray-200 hover:bg-[#f6f8fb]"
                 }`}
               >
                 {status}
@@ -182,38 +226,37 @@ const PaymentProcess = () => {
             ))}
           </div>
           {/* Search Input */}
-          <div className="flex items-center bg-[#f6f8fb] rounded-full px-4 py-2 w-full">
+          <div className="flex items-center bg-[#f6f8fb] rounded-full px-3 py-2 w-full sm:w-auto">
             <FaSearch className="text-gray-500 mr-2" />
             <input
               type="text"
               placeholder="Quick Search"
-              className="bg-[#f6f8fb] focus:outline-none w-full"
+              className="bg-[#f6f8fb] focus:outline-none w-full text-xs md:text-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          
         </div>
       </div>
 
       {/* Billing Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full bg-white rounded-2xl overflow-hidden">
+      <div className="overflow-x-auto w-full">
+        <table className="min-w-[600px] w-full bg-white rounded-2xl overflow-hidden text-xs md:text-sm">
           <thead className="bg-[#f6f8fb]">
             <tr>
               {[
                 "Bill Number",
                 "Patient Name",
-                "Disease Name",
                 "Reciever Name",
                 "Phone Number",
                 "Status",
                 "Date",
-                "Time",
                 "Action",
               ].map((header) => (
                 <th
                   key={header}
-                  className="px-2 md:px-6 py-3 text-left font-semibold text-sm md:text-base"
+                  className="px-2 md:px-6 py-3 text-left font-semibold whitespace-nowrap"
                 >
                   {header}
                 </th>
@@ -233,8 +276,8 @@ const PaymentProcess = () => {
                   )}
                 </tr>
               ))
-            ) : filteredBillingData.length > 0 ? (
-              filteredBillingData.map((bill, index) => {
+            ) : paginatedBills.length > 0 ? (
+              paginatedBills.map((bill, index) => {
                 const nameofreceiver =
                   bill.status === "Unpaid"
                     ? "Not yet"
@@ -242,41 +285,41 @@ const PaymentProcess = () => {
                       " " +
                       bill.statusDetails?.updatedBy?.id?.lastName;
                 return (
-                  <tr key={index} className="border-b hover:bg-gray-50">
+                  <tr
+                    key={bill.id}
+                    className={`border-b hover:bg-gray-50 cursor-pointer transition-colors duration-100 ${
+                      selectedRow === bill.id ? "bg-blue-50" : ""
+                    }`}
+                    onClick={() => handleRowClick(bill.id)}
+                  >
                     <td className="px-2 py-3">
-                      <span className="px-2 md:px-4 py-1 md:py-2 bg-[#f6f8fb] rounded-full font-semibold text-[#718EBF]">
+                      <span className="px-2 md:px-4 py-1 md:py-2 bg-[#f6f8fb] rounded-full font-semibold text-[#718EBF] text-xs md:text-sm">
                         {bill.billNumber || "N/A"}
                       </span>
                     </td>
-                    <td className="px-2 py-3 text-[#4F4F4F]">
+                    <td className="px-2 py-3 text-[#4F4F4F] whitespace-nowrap">
                       {bill.patientName || "N/A"}
                     </td>
-                    <td className="px-2 py-3 text-[#4F4F4F]">
-                      {bill.diseaseName || "N/A"}
-                    </td>
-                    <td className="px-2 py-3 text-[#4F4F4F]">
+                    <td className="px-2 py-3 text-[#4F4F4F] whitespace-nowrap">
                       {nameofreceiver}
                     </td>
-                    <td className="px-2 py-3 text-[#4F4F4F]">
+                    <td className="px-2 py-3 text-[#4F4F4F] whitespace-nowrap">
                       {bill.patientPhoneNumber || "N/A"}
                     </td>
                     <td className="px-2 py-3">
-                      <span className={statusStyles[bill.status || "Unpaid"]}>
+                      <span className={statusStyles[bill.status || "Unpaid"] + " text-xs md:text-sm"}>
                         {bill.status || "Unpaid"}
                       </span>
                     </td>
-                    <td className="px-2 py-3 text-[#4F4F4F]">
+                    <td className="px-2 py-3 text-[#4F4F4F] whitespace-nowrap">
                       {bill.billDate
                         ? new Date(bill.billDate).toLocaleDateString()
                         : "N/A"}
                     </td>
-                    <td className="px-2 py-3 text-[#4F4F4F]">
-                      {bill.billTime || "N/A"}
-                    </td>
-                    <td className="px-2 py-3 flex flex-wrap space-x-2">
+                    <td className="px-2 py-3 flex flex-wrap space-x-2 ">
                       <button
                         className="text-blue-500 hover:bg-gray-100 p-2 rounded-xl"
-                        onClick={() => navigate(`/${role}/invoice/${bill.id}`)}
+                        onClick={(e) => { e.stopPropagation(); navigate(`/${role}/invoice/${bill.id}`); }}
                       >
                         <FaEye />
                       </button>
@@ -286,7 +329,7 @@ const PaymentProcess = () => {
                             ? "text-gray-400 cursor-not-allowed"
                             : "text-blue-500 hover:bg-gray-100"
                         }`}
-                        onClick={() => bill.status !== "Paid" && navigate(`/${role}/payment/edit/${bill.id}`)}
+                        onClick={(e) => { e.stopPropagation(); bill.status !== "Paid" && navigate(`/${role}/payment/edit/${bill.id}`); }}
                         disabled={bill.status === "Paid"}
                       >
                         <FaEdit />
@@ -297,7 +340,7 @@ const PaymentProcess = () => {
                             ? "text-gray-400 cursor-not-allowed"
                             : "text-green-500 hover:bg-gray-100"
                         }`}
-                        onClick={() => handleOpenPaymentModal(bill)}
+                        onClick={(e) => { e.stopPropagation(); handleOpenPaymentModal(bill); }}
                         disabled={bill.status === "Paid"}
                       >
                         <FaDollarSign />
@@ -308,10 +351,7 @@ const PaymentProcess = () => {
               })
             ) : (
               <tr>
-                <td
-                  colSpan="8"
-                  className="text-center py-8 md:py-16 text-gray-500"
-                >
+                <td colSpan="9" className="text-center py-8 md:py-16 text-gray-500">
                   No matching records found
                 </td>
               </tr>
@@ -319,6 +359,73 @@ const PaymentProcess = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Controls */}
+      {!loading && filteredBillingData.length > 0 && (
+        <div className="flex flex-col md:flex-row justify-between items-center mt-4 px-2 md:px-4 space-y-3 md:space-y-0 w-full">
+          <div className="flex items-center space-x-2">
+            <span className="text-xs md:text-sm text-gray-600">Show</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              className="border border-gray-300 rounded-lg px-2 py-1 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#0eabeb] focus:border-transparent"
+            >
+              {[5, 10, 25, 50, 100].map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+            <span className="text-xs md:text-sm text-gray-600">entries</span>
+          </div>
+          <div className="text-xs md:text-sm text-gray-600 text-center">
+            Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredBillingData.length)} of {filteredBillingData.length} entries
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`p-2 rounded-lg ${
+                currentPage === 1
+                  ? "text-gray-400 cursor-not-allowed"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              <FaChevronLeft />
+            </button>
+            {getPageNumbers().map((pageNum, index) =>
+              pageNum === "..." ? (
+                <span key={`ellipsis-${index}`} className="px-2">
+                  ...
+                </span>
+              ) : (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`px-2 md:px-3 py-1 rounded-lg text-xs md:text-sm ${
+                    currentPage === pageNum
+                      ? "bg-[#0eabeb] text-white"
+                      : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              )
+            )}
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`p-2 rounded-lg ${
+                currentPage === totalPages
+                  ? "text-gray-400 cursor-not-allowed"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              <FaChevronRight />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Status Update Modal */}
       {isStatusModalOpen && selectedBill && (

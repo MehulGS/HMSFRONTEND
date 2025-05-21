@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaEye, FaPlus, FaSearch, FaDollarSign } from "react-icons/fa";
+import {
+  FaEye,
+  FaPlus,
+  FaSearch,
+  FaDollarSign,
+  FaChevronLeft,
+  FaChevronRight,
+  FaFilter,
+} from "react-icons/fa";
 import Skeleton from "react-loading-skeleton";
 import api from "../../api/api";
 import noRecordImage from "../../assets/images/NoBill.png";
@@ -11,6 +19,10 @@ const MonitorBilling = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [billingData, setBillingData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [statusTab, setStatusTab] = useState("All");
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const token = localStorage.getItem("token");
   const decoded = jwtDecode(token);
   const role = decoded.role;
@@ -34,7 +46,14 @@ const MonitorBilling = () => {
     fetchBillingData();
   }, []);
 
-  const filteredBillingData = billingData.filter(
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [itemsPerPage, statusTab]);
+
+  // Tab filter logic
+  const statusTabs = ["All", "Paid", "Unpaid"];
+
+  let filteredBillingData = billingData.filter(
     (bill) =>
       bill.billNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (bill.patientName || "N/A")
@@ -45,6 +64,50 @@ const MonitorBilling = () => {
         .includes(searchTerm.toLowerCase()) ||
       (bill.status || "Unpaid").toLowerCase().includes(searchTerm.toLowerCase())
   );
+  if (statusTab !== "All") {
+    filteredBillingData = filteredBillingData.filter(
+      (bill) => (bill.status || "Unpaid") === statusTab
+    );
+  }
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const paginatedBills = filteredBillingData.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+  const totalPages = Math.ceil(filteredBillingData.length / itemsPerPage);
+
+  // Pagination controls
+  const getPageNumbers = () => {
+    const maxVisiblePages = 5;
+    if (totalPages <= maxVisiblePages) {
+      return [...Array(totalPages)].map((_, i) => i + 1);
+    }
+    if (currentPage <= 3) {
+      return [1, 2, 3, 4, "...", totalPages];
+    }
+    if (currentPage >= totalPages - 2) {
+      return [
+        1,
+        "...",
+        totalPages - 3,
+        totalPages - 2,
+        totalPages - 1,
+        totalPages,
+      ];
+    }
+    return [
+      1,
+      "...",
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+      "...",
+      totalPages,
+    ];
+  };
 
   const statusStyles = {
     Paid: "bg-green-100 text-green-600 px-4 py-2 rounded-full",
@@ -52,52 +115,107 @@ const MonitorBilling = () => {
   };
 
   return (
-    <div className="p-4 md:p-6 bg-white rounded-2xl shadow-md h-full">
+    <div className="p-2 md:p-6 bg-white rounded-2xl shadow-md w-full max-w-full">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-4 space-y-4 md:space-y-0">
-        <h2 className="text-lg md:text-xl font-semibold text-[#030229]">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 space-y-3 md:space-y-0">
+        <h2 className="text-base md:text-xl font-semibold text-[#030229] text-center md:text-left">
           Monitor Billing
         </h2>
-        <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-3 w-full md:w-auto">
-          <div className="flex items-center bg-[#f6f8fb] rounded-full px-4 py-2 w-full md:max-w-lg">
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          {/* Status Tabs (responsive) */}
+          {/* Mobile: Dropdown with filter icon */}
+          <div className="block md:hidden w-full mb-2">
+            <div className="relative w-full">
+              <button
+                className="flex items-center w-full px-4 py-2 border border-gray-300 rounded-full bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0eabeb]"
+                onClick={() => setShowStatusDropdown((prev) => !prev)}
+              >
+                <FaFilter className="mr-2" />
+                <span className="flex-1 text-left">{statusTab}</span>
+                <svg
+                  className={`w-4 h-4 ml-2 transition-transform ${showStatusDropdown ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {showStatusDropdown && (
+                <div className="absolute left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+                  {statusTabs.map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => { setStatusTab(tab); setShowStatusDropdown(false); }}
+                      className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                        statusTab === tab
+                          ? "bg-[#0eabeb] text-white"
+                          : "hover:bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          {/* Desktop: Tab bar */}
+          <div className="hidden md:flex flex-wrap gap-2 mb-4 items-center">
+            {statusTabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setStatusTab(tab)}
+                className={`px-4 py-2 rounded-full font-medium border transition-colors duration-150 text-sm md:text-base ${
+                  statusTab === tab
+                    ? "bg-[#0eabeb] text-white border-[#0eabeb]"
+                    : "bg-white text-gray-600 border-gray-200 hover:bg-[#f6f8fb]"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center bg-[#f6f8fb] rounded-full px-3 py-2 w-full sm:w-auto">
             <FaSearch className="text-gray-500 mr-2" />
             <input
               type="text"
               placeholder="Quick Search"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-[#f6f8fb] focus:outline-none w-full"
+              className="bg-[#f6f8fb] focus:outline-none w-full text-sm md:text-base"
             />
           </div>
-          <button
-            className="w-full text-sm bg-[#0eabeb] text-white px-4 py-2 rounded-xl font-medium flex items-center justify-center hover:bg-[#0099cc]"
-            onClick={() => navigate(`/${role}/create-bill`)}
-          >
-            <FaPlus className="mr-2" />
-            Create Bills
-          </button>
+          <div>
+            <button
+              className="w-full text-sm bg-[#0eabeb] text-white px-4 py-2 rounded-xl font-medium flex items-center justify-center hover:bg-[#0099cc]"
+              onClick={() => navigate(`/${role}/create-bill`)}
+            >
+              <FaPlus className="mr-2" />
+              Create Bills
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Billing Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full bg-white rounded-2xl overflow-hidden">
+      <div className="overflow-x-auto w-full">
+        <table className="min-w-[600px] w-full bg-white rounded-2xl overflow-hidden text-xs md:text-sm">
           <thead className="bg-[#f6f8fb]">
             <tr>
               {[
                 "Bill Number",
                 "Patient Name",
-                "Disease Name",
                 "Receiver Name",
                 "Phone Number",
                 "Status",
                 "Date",
-                "Time",
                 "Action",
               ].map((header) => (
                 <th
                   key={header}
-                  className="px-2 md:px-6 py-3 text-left font-semibold text-sm md:text-base"
+                  className="px-2 md:px-6 py-3 text-left font-semibold whitespace-nowrap"
                 >
                   {header}
                 </th>
@@ -117,45 +235,44 @@ const MonitorBilling = () => {
                   )}
                 </tr>
               ))
-            ) : filteredBillingData.length > 0 ? (
-              filteredBillingData.map((bill, index) => {
-                   const nameofreceiver =
+            ) : paginatedBills.length > 0 ? (
+              paginatedBills.map((bill, index) => {
+                const nameofreceiver =
                   bill.status === "Unpaid"
                     ? "Not yet"
                     : bill.statusDetails?.updatedBy?.id?.firstName +
                       " " +
                       bill.statusDetails?.updatedBy?.id?.lastName;
                 return (
-                  <tr key={index} className="border-b hover:bg-gray-50">
+                  <tr key={bill.id} className="border-b hover:bg-gray-50">
                     <td className="px-2 py-3">
-                      <span className="px-2 md:px-4 py-1 md:py-2 bg-[#f6f8fb] rounded-full font-semibold text-[#718EBF]">
+                      <span className="px-2 md:px-4 py-1 md:py-2 bg-[#f6f8fb] rounded-full font-semibold text-[#718EBF] text-xs md:text-sm">
                         {bill.billNumber || "N/A"}
                       </span>
                     </td>
-                    <td className="px-2 py-3 text-[#4F4F4F]">
+                    <td className="px-2 py-3 text-[#4F4F4F] whitespace-nowrap">
                       {bill.patientName || "N/A"}
                     </td>
-                    <td className="px-2 py-3 text-[#4F4F4F]">
-                      {bill.diseaseName || "N/A"}
-                    </td>
-                    <td className="px-2 py-3 text-[#4F4F4F]">
+                    <td className="px-2 py-3 text-[#4F4F4F] whitespace-nowrap">
                       {nameofreceiver}
                     </td>
-                    <td className="px-2 py-3 text-[#4F4F4F]">
+                    <td className="px-2 py-3 text-[#4F4F4F] whitespace-nowrap">
                       {bill.patientPhoneNumber || "N/A"}
                     </td>
                     <td className="px-2 py-3">
-                      <span className={statusStyles[bill.status || "Unpaid"]}>
+                      <span
+                        className={
+                          statusStyles[bill.status || "Unpaid"] +
+                          " text-xs md:text-sm"
+                        }
+                      >
                         {bill.status || "Unpaid"}
                       </span>
                     </td>
-                    <td className="px-2 py-3 text-[#4F4F4F]">
+                    <td className="px-2 py-3 text-[#4F4F4F] whitespace-nowrap">
                       {bill.billDate
                         ? new Date(bill.billDate).toLocaleDateString()
                         : "N/A"}
-                    </td>
-                    <td className="px-2 py-3 text-[#4F4F4F]">
-                      {bill.billTime || "N/A"}
                     </td>
                     <td className="px-2 py-3 flex flex-wrap space-x-2 ">
                       <button
@@ -170,14 +287,16 @@ const MonitorBilling = () => {
               })
             ) : (
               <tr>
-                <td colSpan="8" className="text-center py-8 md:py-16">
+                <td colSpan="9" className="text-center py-8 md:py-16">
                   <div className="flex flex-col items-center">
                     <img
                       src={noRecordImage}
                       alt="No Record Found"
-                      className="w-48 sm:w-96 mb-4"
+                      className="w-32 md:w-48 mb-4"
                     />
-                    <p className="text-gray-500">No records found</p>
+                    <p className="text-gray-500 text-xs md:text-base">
+                      No records found
+                    </p>
                   </div>
                 </td>
               </tr>
@@ -185,6 +304,75 @@ const MonitorBilling = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Controls */}
+      {!loading && filteredBillingData.length > 0 && (
+        <div className="flex flex-col md:flex-row justify-between items-center mt-4 px-2 md:px-4 space-y-3 md:space-y-0 w-full">
+          <div className="flex items-center space-x-2">
+            <span className="text-xs md:text-sm text-gray-600">Show</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              className="border border-gray-300 rounded-lg px-2 py-1 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#0eabeb] focus:border-transparent"
+            >
+              {[5, 10, 25, 50, 100].map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+            <span className="text-xs md:text-sm text-gray-600">entries</span>
+          </div>
+          <div className="text-xs md:text-sm text-gray-600 text-center">
+            Showing {indexOfFirstItem + 1} to{" "}
+            {Math.min(indexOfLastItem, filteredBillingData.length)} of{" "}
+            {filteredBillingData.length} entries
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`p-2 rounded-lg ${
+                currentPage === 1
+                  ? "text-gray-400 cursor-not-allowed"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              <FaChevronLeft />
+            </button>
+            {getPageNumbers().map((pageNum, index) =>
+              pageNum === "..." ? (
+                <span key={`ellipsis-${index}`} className="px-2">
+                  ...
+                </span>
+              ) : (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`px-2 md:px-3 py-1 rounded-lg text-xs md:text-sm ${
+                    currentPage === pageNum
+                      ? "bg-[#0eabeb] text-white"
+                      : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              )
+            )}
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`p-2 rounded-lg ${
+                currentPage === totalPages
+                  ? "text-gray-400 cursor-not-allowed"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              <FaChevronRight />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,60 +1,71 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { FaEye, FaEdit, FaSearch, FaChevronLeft, FaChevronRight, FaTrash, FaUserPlus } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import { FaEye, FaPlus, FaSearch, FaChevronLeft, FaChevronRight, FaTrash } from "react-icons/fa";
 import Skeleton from "react-loading-skeleton";
-import api from "../api/api";
-import noRecordImage from "../assets/images/NoBill.png";
+import api from "../../../api/api";
+import noRecordImage from "../../../assets/images/NoBill.png";
 import "react-loading-skeleton/dist/skeleton.css";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
 
-const PatientManagement = () => {
+const SickPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [patients, setPatients] = useState([]);
+  const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [selectedCertificate, setSelectedCertificate] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const token = localStorage.getItem("token");
   const decoded = jwtDecode(token);
   const role = decoded.role;
   const navigate = useNavigate();
 
+  // Reset to first page when items per page changes
   useEffect(() => {
     setCurrentPage(1);
   }, [itemsPerPage]);
 
   useEffect(() => {
-    const fetchPatients = async () => {
+    const fetchCertificates = async () => {
       try {
-        const response = await api.get("/users/patients", {
+        const response = await api.get("/certificate", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
-        setPatients(response.data);
+        // Filter only Sick type certificates
+        const sickCertificates = response.data.data.filter(
+          cert => cert.type === "Sick"
+        );
+        setCertificates(sickCertificates);
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching patients:", error);
+        console.error("Error fetching certificates:", error);
         setLoading(false);
       }
     };
-    fetchPatients();
+    fetchCertificates();
   }, []);
 
-  const filteredPatients = patients.filter(
-    (patient) =>
-      `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      `${patient.phoneNumber}`.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCertificates = certificates.filter(
+    (cert) =>
+      cert.certificateNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (cert.patientName || "N/A")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (cert.diseaseName || "N/A")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (cert.status || "Active").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const paginatedPatients = filteredPatients.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredPatients.length / itemsPerPage);
+  const currentItems = filteredCertificates.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredCertificates.length / itemsPerPage);
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -67,49 +78,62 @@ const PatientManagement = () => {
   // Generate page numbers with ellipsis
   const getPageNumbers = () => {
     const maxVisiblePages = 5;
+    
     if (totalPages <= maxVisiblePages) {
       return [...Array(totalPages)].map((_, i) => i + 1);
     }
+
     if (currentPage <= 3) {
       return [1, 2, 3, 4, '...', totalPages];
     }
+
     if (currentPage >= totalPages - 2) {
       return [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
     }
+
     return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
   };
 
-  const handleDeleteClick = (patient) => {
-    setSelectedPatient(patient);
+  const statusStyles = {
+    Active: "bg-green-100 text-green-600 px-4 py-2 rounded-full",
+    Expired: "bg-red-100 text-red-600 px-4 py-2 rounded-full",
+    Revoked: "bg-yellow-100 text-yellow-600 px-4 py-2 rounded-full",
+  };
+
+  const handleDeleteClick = (certificate) => {
+    setSelectedCertificate(certificate);
     setShowDeleteModal(true);
   };
 
   const handleDeleteConfirm = async () => {
-    if (!selectedPatient) return;
+    if (!selectedCertificate) return;
+    
     setIsDeleting(true);
     try {
-      const response = await api.delete(`/users/patients/${selectedPatient._id}`, {
+      const response = await api.delete(`/certificate/${selectedCertificate._id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
+      
       if (response.status === 200) {
-        toast.success("Patient deleted successfully");
-        setPatients(patients.filter((pat) => pat._id !== selectedPatient._id));
+        toast.success("Certificate deleted successfully");
+        // Remove the deleted certificate from the list
+        setCertificates(certificates.filter(cert => cert._id !== selectedCertificate._id));
       }
     } catch (error) {
-      console.error("Error deleting patient:", error);
-      toast.error(error.response?.data?.message || "Error deleting patient");
+      console.error("Error deleting certificate:", error);
+      toast.error(error.response?.data?.message || "Error deleting certificate");
     } finally {
       setIsDeleting(false);
       setShowDeleteModal(false);
-      setSelectedPatient(null);
+      setSelectedCertificate(null);
     }
   };
 
   const handleDeleteCancel = () => {
     setShowDeleteModal(false);
-    setSelectedPatient(null);
+    setSelectedCertificate(null);
   };
 
   return (
@@ -117,48 +141,58 @@ const PatientManagement = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-4 space-y-4 md:space-y-0">
         <h2 className="text-lg md:text-xl font-semibold text-[#030229]">
-          Patient Management
+          Sick Certificate
         </h2>
         <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-3 w-full md:w-auto">
-          <div className="flex items-center bg-[#f6f8fb] rounded-full px-4 py-2 w-full">
+          <div className="flex items-center bg-[#f6f8fb] rounded-full px-4 py-2 w-full md:max-w-lg">
             <FaSearch className="text-gray-500 mr-2" />
             <input
               type="text"
-              placeholder="Search Patient"
+              placeholder="Quick Search"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="bg-[#f6f8fb] focus:outline-none w-full"
             />
           </div>
-          <Link
-            to={`/${role}/add-new-patient`}
-            className="bg-customBlue text-white px-4 py-2 rounded-xl flex items-center space-x-2 w-full"
+          <button
+            className="w-full text-sm bg-[#0eabeb] text-white px-4 py-2 rounded-xl font-medium flex items-center justify-center hover:bg-[#0099cc]"
+            onClick={() => navigate(`/${role}/create-sickcertificate`)}
           >
-            <FaUserPlus className="text-white" />
-            <span>Add New Patient</span>
-          </Link>
+            <FaPlus className="mr-2" />
+            Create Sick Certificate
+          </button>
         </div>
       </div>
 
-      {/* Patients Table */}
+      {/* Certificates Table */}
       <div className="overflow-x-auto">
         <table className="w-full bg-white rounded-2xl overflow-hidden">
           <thead className="bg-[#f6f8fb]">
             <tr>
-              <th className="px-2 md:px-6 py-3 text-left font-semibold text-sm md:text-base">Sr No</th>
-              <th className="px-2 md:px-6 py-3 text-left font-semibold text-sm md:text-base">Patient Name</th>
-              <th className="px-2 md:px-6 py-3 text-left font-semibold text-sm md:text-base">Gender</th>
-              <th className="px-2 md:px-6 py-3 text-left font-semibold text-sm md:text-base">Phone Number</th>
-              <th className="px-2 md:px-6 py-3 text-left font-semibold text-sm md:text-base">Age</th>
-              <th className="px-2 md:px-6 py-3 text-left font-semibold text-sm md:text-base">Blood Group</th>
-              <th className="px-2 md:px-6 py-3 text-center font-semibold text-sm md:text-base">Action</th>
+              {[
+                "Certificate Number",
+                "Patient Name",
+                "Doctor Name",
+                "Disease Name",
+                "Duration",
+                "Status",
+                "Created Date",
+                "Action",
+              ].map((header) => (
+                <th
+                  key={header}
+                  className="px-2 md:px-6 py-3 text-left font-semibold text-sm md:text-base"
+                >
+                  {header}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody className="max-h-[400px] overflow-y-auto custom-scroll">
             {loading ? (
               [...Array(5)].map((_, index) => (
                 <tr key={index}>
-                  {["80", "120", "80", "120", "60", "80", "120"].map(
+                  {["80", "120", "120", "120", "80", "100", "80", "60"].map(
                     (width, i) => (
                       <td key={i} className="px-2 py-3">
                         <Skeleton width={width} height={20} />
@@ -167,43 +201,47 @@ const PatientManagement = () => {
                   )}
                 </tr>
               ))
-            ) : paginatedPatients.length > 0 ? (
-              paginatedPatients.map((patient, idx) => (
-                <tr key={patient._id} className="border-b hover:bg-gray-50">
-                  <td className="px-2 py-3">{patient.patientUniqueId || `#${indexOfFirstItem + idx + 1}`}</td>
-                  <td className="px-2 py-3 text-[#4F4F4F]">{`${patient.firstName} ${patient.lastName}`}</td>
+            ) : currentItems.length > 0 ? (
+              currentItems.map((certificate) => (
+                <tr key={certificate._id} className="border-b hover:bg-gray-50">
                   <td className="px-2 py-3">
-                    <span className="bg-blue-100 text-blue-600 px-2 md:px-3 py-1 rounded-full text-sm">
-                      {patient.gender}
+                    <span className="px-2 md:px-4 py-1 md:py-2 bg-[#f6f8fb] rounded-full font-semibold text-[#718EBF]">
+                      {certificate.certificateNumber || "N/A"}
                     </span>
                   </td>
-                  <td className="px-2 py-3 text-[#4F4F4F]">{patient.phoneNumber || "N/A"}</td>
-                  <td className="px-2 py-3 text-[#4F4F4F]">{patient.age || "N/A"}</td>
                   <td className="px-2 py-3 text-[#4F4F4F]">
-                    <span className="bg-blue-100 text-blue-600 px-2 md:px-3 py-1 rounded-full text-sm">
-                      {patient.bloodGroup || "N/A"}
+                    {certificate.patientName || "N/A"}
+                  </td>
+                  <td className="px-2 py-3 text-[#4F4F4F]">
+                    {certificate.doctorName || "N/A"}
+                  </td>
+                  <td className="px-2 py-3 text-[#4F4F4F]">
+                    {certificate.diseaseName || "N/A"}
+                  </td>
+                  <td className="px-2 py-3 text-[#4F4F4F]">
+                    {certificate.duration || "N/A"}
+                  </td>
+                  <td className="px-2 py-3">
+                    <span className={statusStyles[certificate.status || "Active"]}>
+                      {certificate.status || "Active"}
                     </span>
                   </td>
-                  <td className="px-2 py-3 text-xl text-center">
-                    <div className="flex items-center justify-center space-x-2 md:space-x-4">
-                      <Link
-                        to={`/${role}/patient/${patient._id}`}
-                        className="text-blue-500 hover:text-blue-600 bg-gray-100 p-1 md:p-2 rounded-xl"
-                        title="View"
+                  <td className="px-2 py-3 text-[#4F4F4F]">
+                    {certificate.createdAt
+                      ? new Date(certificate.createdAt).toLocaleDateString()
+                      : "N/A"}
+                  </td>
+                  <td className="px-2 py-3">
+                    <div className="flex space-x-2">
+                      <button
+                        className="text-blue-500 hover:bg-gray-100 p-2 rounded-xl"
+                        onClick={() => navigate(`/${role}/sickcertificate/${certificate._id}`)}
                       >
                         <FaEye />
-                      </Link>
-                      <Link
-                        to={`/${role}/edit-patient/${patient._id}`}
-                        className="text-green-500 hover:text-green-600 bg-gray-100 p-1 md:p-2 rounded-xl"
-                        title="Edit"
-                      >
-                        <FaEdit />
-                      </Link>
+                      </button>
                       <button
-                        onClick={() => handleDeleteClick(patient)}
-                        className="text-red-500 hover:text-red-600 bg-gray-100 p-1 md:p-2 rounded-xl"
-                        title="Delete"
+                        className="text-red-500 hover:bg-gray-100 p-2 rounded-xl"
+                        onClick={() => handleDeleteClick(certificate)}
                       >
                         <FaTrash />
                       </button>
@@ -213,14 +251,14 @@ const PatientManagement = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="text-center py-8 md:py-16">
+                <td colSpan="8" className="text-center py-8 md:py-16">
                   <div className="flex flex-col items-center">
                     <img
                       src={noRecordImage}
                       alt="No Record Found"
                       className="w-48 sm:w-96 mb-4"
                     />
-                    <p className="text-gray-500">No Patient Found</p>
+                    <p className="text-gray-500">No records found</p>
                   </div>
                 </td>
               </tr>
@@ -230,7 +268,7 @@ const PatientManagement = () => {
       </div>
 
       {/* Pagination Controls */}
-      {!loading && filteredPatients.length > 0 && (
+      {!loading && filteredCertificates.length > 0 && (
         <div className="flex flex-col md:flex-row justify-between items-center mt-4 px-4 space-y-4 md:space-y-0">
           <div className="flex items-center space-x-2">
             <span className="text-sm text-gray-600">Show</span>
@@ -247,9 +285,11 @@ const PatientManagement = () => {
             </select>
             <span className="text-sm text-gray-600">entries</span>
           </div>
+          
           <div className="text-sm text-gray-600">
-            Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredPatients.length)} of {filteredPatients.length} entries
+            Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredCertificates.length)} of {filteredCertificates.length} entries
           </div>
+
           <div className="flex items-center space-x-2">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
@@ -262,6 +302,7 @@ const PatientManagement = () => {
             >
               <FaChevronLeft />
             </button>
+            
             {getPageNumbers().map((pageNum, index) => (
               pageNum === '...' ? (
                 <span key={`ellipsis-${index}`} className="px-2">...</span>
@@ -279,6 +320,7 @@ const PatientManagement = () => {
                 </button>
               )
             ))}
+
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
@@ -293,15 +335,16 @@ const PatientManagement = () => {
           </div>
         </div>
       )}
+
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Delete Patient
+              Delete Certificate
             </h3>
             <p className="text-gray-600 mb-6">
-              Are you sure you want to delete this patient? This action cannot be undone.
+              Are you sure you want to delete this certificate? This action cannot be undone.
             </p>
             <div className="flex justify-end space-x-4">
               <button
@@ -330,4 +373,4 @@ const PatientManagement = () => {
   );
 };
 
-export default PatientManagement;
+export default SickPage;

@@ -33,16 +33,14 @@ const SidePanel = () => {
           alt="Vector Bottom Right"
           className="absolute top-20 right-0 w-30 h-30"
         />
-        <img src={logo} alt="Logo" className="mb-4 mx-auto w-60 h-30" />
         <img
-          src={logoBanner}
+          src={logo}
           alt="Banner"
-          className="w-full max-w-lg mx-auto"
+          className="w-[500px] h-[400px] mx-auto"
         />
-        <h2 className="text-4xl font-bold mt-4">Hospital</h2>
+        <h2 className="text-4xl font-bold mt-4">Shanti Devi Health Care Hospital</h2>
         <p className="text-gray-600 mt-2 font-semibold">
-          You Can stay your Hospital and Contact
-          <br /> With Your Facility.
+         G.F Shop No.: 3, Sun South Trade, Opp. Bopal Police Station, Gala Gym Khana Road, <br /> Bopal, Ahmedabad - 380058, India
         </p>
       </div>
     </div>

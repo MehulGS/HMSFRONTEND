@@ -4,18 +4,30 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { FaPrint } from "react-icons/fa";
 import api from "../../api/api";
-import letterhead from "../../assets/images/letterhead.png";
+import InvoicesHead from "../../assets/images/Invoice.png";
+import IvoicesTop from "../../assets/images/Invoice-T.png";
+import IvoicesBottom from "../../assets/images/Invoice-F.png";
+
 
 const Invoice = () => {
   const { billId } = useParams();
   const [invoiceData, setInvoiceData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Split medicines for pagination (first 3, rest)
-  const medicines = invoiceData?.medicines || [];
-  const firstPageMedicines = medicines.slice(0, 3);
-  const restMedicines = medicines.slice(3);
-  const medicinesCount = medicines.length;
+  // Prepare charges list for pagination
+  const chargesList = [];
+  if (invoiceData?.charges?.odpCharges !== undefined) {
+    chargesList.push({
+      type: 'OPD Charges',
+      amount: invoiceData.charges.odpCharges
+    });
+  }
+  if (Array.isArray(invoiceData?.charges?.additionalCharges)) {
+    chargesList.push(...invoiceData.charges.additionalCharges);
+  }
+  const firstPageCharges = chargesList.slice(0, 6);
+  const restCharges = chargesList.slice(6);
+  const chargesCount = chargesList.length;
 
   useEffect(() => {
     const fetchInvoiceData = async () => {
@@ -72,12 +84,17 @@ const Invoice = () => {
         id="printableArea"
         className="bg-white print:bg-white text-black print:text-black rounded-2xl w-full max-w-3xl mx-auto shadow-md border border-gray-200 print:shadow-none print:border-none flex flex-col items-center"
       >
-        {/* If only 1 medicine, show everything in one page, no A4/page-break wrappers */}
-        {medicinesCount === 1 ? (
+        {/* If 6 or fewer charges, show everything in one page */}
+        {chargesCount <= 6 ? (
           <div className="relative w-full h-[297mm]">
+            {/* Watermark background always */}
             <div className="absolute w-full h-full">
-              <img src={letterhead} className="w-full h-full" alt="" />
+              <img src={InvoicesHead} className="w-full h-full" alt="" style={{position: 'absolute', zIndex: 0}} />
             </div>
+            {/* Top image only on first page */}
+            {/* <div className="absolute w-full top-0 left-0">
+              <img src={IvoicesTop} className="w-full" alt="" style={{zIndex: 1}} />
+            </div> */}
             <div className="inputfields absolute top-[300px] w-full max-w-3xl m-auto px-28 flex flex-col items-start bg-transparent">
               <div className="flex justify-between mb-4 w-full">
                 <div>
@@ -179,14 +196,6 @@ const Invoice = () => {
                     )}
                   </p>
                   <p className="col-span-2">
-                    <strong>EMAIL:</strong>{" "}
-                    {loading ? (
-                      <Skeleton width={150} />
-                    ) : (
-                      invoiceData?.patient?.email
-                    )}
-                  </p>
-                  <p className="col-span-2">
                     <strong>ADDRESS:</strong>{" "}
                     {loading ? (
                       <Skeleton width={200} />
@@ -221,493 +230,282 @@ const Invoice = () => {
                 </p>
               </div>
 
-              {/* Description */}
-              <div className="mb-4 py-2 border-b border-gray-300 text-sm w-full">
-                <p>
-                  <strong>DESCRIPTION</strong>
-                </p>
-                <p className="font-semibold">
-                  {loading ? (
-                    <Skeleton width={200} />
-                  ) : (
-                    invoiceData?.description
-                  )}
-                </p>
-              </div>
-
-              {/* Medicines Table */}
+              {/* Charges Table */}
               <div className="mb-6 w-full">
-                <h3 className="font-semibold text-lg mb-2">MEDICINE</h3>
+                <h3 className="font-semibold text-lg mb-2">CHARGES</h3>
                 <table className="w-full text-sm">
                   <thead className="bg-gray-100">
                     <tr>
-                      <th className="py-2 text-left">MEDICINE NAME</th>
-                      <th className="py-2 text-center">DOSE</th>
-                      <th className="py-2 text-center">DURATION</th>
-                      <th className="py-2 text-center">TIME</th>
+                      <th className="py-2 text-left">CHARGE TYPE</th>
+                      <th className="py-2 text-center">AMOUNT</th>
                     </tr>
                   </thead>
                   <tbody>
                     {loading ? (
                       <tr>
-                        <td colSpan="4" className="py-2">
+                        <td colSpan="2" className="py-2">
                           <Skeleton count={3} />
                         </td>
                       </tr>
                     ) : (
-                      firstPageMedicines.map((medicine, index) => (
+                      firstPageCharges.map((charge, index) => (
                         <tr key={index} className="border-b border-gray-200">
-                          <td className="py-2 text-left">{medicine.name}</td>
-                          <td className="py-2 text-center">{medicine.dose}</td>
-                          <td className="py-2 text-center">
-                            {medicine.duration}
-                          </td>
-                          <td className="py-2 text-center">
-                            {medicine.whenToTake}
-                          </td>
+                          <td className="py-2 text-left font-medium">{charge.type}</td>
+                          <td className="py-2 text-center">₹ {Number(charge.amount).toFixed(2)}</td>
                         </tr>
                       ))
                     )}
                   </tbody>
                 </table>
               </div>
-              {/* Account details always after medicine table, inside inputfields */}
+              {/* Total Amount */}
               <div className="text-right mt-6 w-full">
                 <div className="flex justify-between mb-2 text-sm w-full">
-                  <span>SUB TOTAL</span>
+                  <span>TOTAL</span>
                   <span>
                     ₹{" "}
                     {loading ? (
                       <Skeleton width={70} />
-                    ) : (
-                      invoiceData?.amount?.toFixed(2)
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between mb-2 text-sm w-full">
-                  <span>DISCOUNT</span>
-                  <span>
-                    {loading ? (
-                      <Skeleton width={50} />
-                    ) : (
-                      `${invoiceData?.discount}%`
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between font-semibold text-lg w-full">
-                  <span>GRAND TOTAL</span>
-                  <span>
-                    ₹{" "}
-                    {loading ? (
-                      <Skeleton width={80} />
                     ) : (
                       invoiceData?.totalAmount?.toFixed(2)
                     )}
                   </span>
                 </div>
               </div>
-              {/* Doctor Signature Section */}
-              <div className="absolute -bottom-[160px] right-10 flex justify-end">
-                <div className="text-center">
-                  <img
-                    src={invoiceData?.doctor?.signatureImage}
-                    alt=""
-                    className="w-32 h-12 object-cover mx-auto"
-                  />
-                  <div className="border-t border-gray-400 w-48 mb-2"></div>
-                  <p className="font-semibold">
-                    Dr.{" "}
-                    {loading ? (
-                      <Skeleton width={100} />
-                    ) : (
-                      invoiceData?.doctor?.firstName +
-                        " " +
-                        invoiceData?.doctor?.lastName || "Doctor Name"
-                    )}
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
         ) : (
           <>
-            {/* First A4 page: patient info + first medicines */}
-            <div className="print:a4-page print:page-break-after w-full">
-              <div className="relative w-full h-[297mm]">
-                <div className="absolute w-full h-full">
-                  <img src={letterhead} className="w-full h-full" alt="" />
-                </div>
-                <div className="inputfields absolute top-[300px] w-full max-w-3xl m-auto px-28 flex flex-col items-start bg-transparent">
-                  <div className="flex justify-between mb-4 w-full">
-                    <div>
-                      <p className="text-sm">
-                        <strong>BILL NO.</strong>
-                      </p>
-                      <p className="font-semibold">
-                        {loading ? (
-                          <Skeleton width={100} />
-                        ) : (
-                          invoiceData?.billNumber
-                        )}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <div className="flex justify-end gap-4 text-sm">
-                        <div>
-                          <p>
-                            <strong>DATE</strong>
-                          </p>
-                          <p className="font-semibold">
-                            {loading ? (
-                              <Skeleton width={80} />
-                            ) : (
-                              formatDate(invoiceData?.billDate)
-                            )}
-                          </p>
-                        </div>
-                        <div>
-                          <p>
-                            <strong>TIME</strong>
-                          </p>
-                          <p className="font-semibold">
-                            {loading ? (
-                              <Skeleton width={60} />
-                            ) : (
-                              invoiceData?.billTime
-                            )}
-                          </p>
-                        </div>
-                        <div>
-                          <p>
-                            <strong>STATUS</strong>
-                          </p>
-                          <p
-                            className={`font-semibold ${
-                              invoiceData?.status === "Unpaid"
-                                ? "text-red-500"
-                                : "text-green-500"
-                            }`}
-                          >
-                            {loading ? (
-                              <Skeleton width={70} />
-                            ) : (
-                              invoiceData?.status
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+            {/* First A4 page: patient info + first 6 charges */}
+            <div className="print:a4-page print:page-break-after w-full relative h-[297mm]">
+              {/* Watermark background always */}
+              {/* <div className="absolute w-full h-full">
+                <img src={InvoicesHead} className="w-full h-full" alt="" style={{position: 'absolute', zIndex: 0}} />
+              </div> */}
+              {/* Top image only on first page */}
+              <div className="absolute w-full top-0 left-0">
+                <img src={IvoicesTop} className="w-full" alt="" style={{zIndex: 1}} />
+              </div>
+              <div className="inputfields absolute top-[300px] w-full max-w-3xl m-auto px-28 flex flex-col items-start bg-transparent">
+                <div className="flex justify-between mb-4 w-full">
+                  <div>
+                    <p className="text-sm">
+                      <strong>BILL NO.</strong>
+                    </p>
+                    <p className="font-semibold">
+                      {loading ? (
+                        <Skeleton width={100} />
+                      ) : (
+                        invoiceData?.billNumber
+                      )}
+                    </p>
                   </div>
-
-                  {/* Patient Information */}
-                  <div className="mb-6 py-2 border-b border-gray-300 w-full">
-                    <h3 className="font-semibold text-lg mb-2">
-                      PATIENT INFORMATION
-                    </h3>
-                    <div className="grid grid-cols-2 gap-y-2 text-sm w-full">
-                      <p>
-                        <strong>NAME:</strong>{" "}
-                        {loading ? (
-                          <Skeleton width={120} />
-                        ) : (
-                          `${invoiceData?.patient?.firstName} ${invoiceData?.patient?.lastName}`
-                        )}
-                      </p>
-                      <p>
-                        <strong>AGE:</strong>{" "}
-                        {loading ? (
-                          <Skeleton width={40} />
-                        ) : (
-                          `${invoiceData?.patient?.age} Years`
-                        )}
-                      </p>
-                      <p>
-                        <strong>GENDER:</strong>{" "}
-                        {loading ? (
-                          <Skeleton width={80} />
-                        ) : (
-                          invoiceData?.patient?.gender
-                        )}
-                      </p>
-                      <p>
-                        <strong>PHONE:</strong>{" "}
-                        {loading ? (
-                          <Skeleton width={100} />
-                        ) : (
-                          invoiceData?.patient?.phoneNumber
-                        )}
-                      </p>
-                      <p className="col-span-2">
-                        <strong>EMAIL:</strong>{" "}
-                        {loading ? (
-                          <Skeleton width={150} />
-                        ) : (
-                          invoiceData?.patient?.email
-                        )}
-                      </p>
-                      <p className="col-span-2">
-                        <strong>ADDRESS:</strong>{" "}
-                        {loading ? (
-                          <Skeleton width={200} />
-                        ) : (
-                          invoiceData?.patient?.address
-                        )}
-                      </p>
-                      <p>
-                        <strong>PAYMENT TYPE:</strong>{" "}
-                        <span className="font-semibold">
+                  <div className="text-right">
+                    <div className="flex justify-end gap-4 text-sm">
+                      <div>
+                        <p>
+                          <strong>DATE</strong>
+                        </p>
+                        <p className="font-semibold">
                           {loading ? (
                             <Skeleton width={80} />
                           ) : (
-                            invoiceData?.paymentType
+                            formatDate(invoiceData?.billDate)
                           )}
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Disease */}
-                  <div className="mb-4 py-2 border-b border-gray-300 text-sm w-full">
-                    <p>
-                      <strong>DISEASE</strong>
-                    </p>
-                    <p className="font-semibold">
-                      {loading ? (
-                        <Skeleton width={120} />
-                      ) : (
-                        invoiceData?.diseaseName
-                      )}
-                    </p>
-                  </div>
-
-                  {/* Description */}
-                  <div className="mb-4 py-2 border-b border-gray-300 text-sm w-full">
-                    <p>
-                      <strong>DESCRIPTION</strong>
-                    </p>
-                    <p className="font-semibold">
-                      {loading ? (
-                        <Skeleton width={200} />
-                      ) : (
-                        invoiceData?.description
-                      )}
-                    </p>
-                  </div>
-
-                  {/* Medicines Table */}
-                  <div className="mb-6 print:page-break-before w-full">
-                    <h3 className="font-semibold text-lg mb-2">MEDICINE</h3>
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-100">
-                        <tr>
-                          <th className="py-2 text-left">MEDICINE NAME</th>
-                          <th className="py-2 text-center">DOSE</th>
-                          <th className="py-2 text-center">DURATION</th>
-                          <th className="py-2 text-center">TIME</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {loading ? (
-                          <tr>
-                            <td colSpan="4" className="py-2">
-                              <Skeleton count={3} />
-                            </td>
-                          </tr>
-                        ) : (
-                          firstPageMedicines.map((medicine, index) => (
-                            <tr
-                              key={index}
-                              className="border-b border-gray-200"
-                            >
-                              <td className="py-2 text-left">
-                                {medicine.name}
-                              </td>
-                              <td className="py-2 text-center">
-                                {medicine.dose}
-                              </td>
-                              <td className="py-2 text-center">
-                                {medicine.duration}
-                              </td>
-                              <td className="py-2 text-center">
-                                {medicine.whenToTake}
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
-            {/* If medicines > 3, new A4 page for rest of medicines */}
-            {restMedicines.length > 0 && (
-              <div className="print:a4-page print:page-break-after w-full">
-                <div className="relative w-full h-[297mm]">
-                  <div className="absolute w-full h-full">
-                    <img src={letterhead} className="w-full h-full" alt="" />
-                  </div>
-                  <div className="inputfields absolute top-[300px] w-full max-w-3xl m-auto px-28 flex flex-col items-start bg-transparent">
-                    <div className="print:page-break-before w-full">
-                      <h3 className="font-semibold text-lg mb-2">
-                        MEDICINE (Continued)
-                      </h3>
-                      <table className="w-full text-sm">
-                        <thead className="bg-gray-100">
-                          <tr>
-                            <th className="py-2 text-left">MEDICINE NAME</th>
-                            <th className="py-2 text-center">DOSE</th>
-                            <th className="py-2 text-center">DURATION</th>
-                            <th className="py-2 text-center">TIME</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {restMedicines.map((medicine, index) => (
-                            <tr
-                              key={index}
-                              className="border-b border-gray-200"
-                            >
-                              <td className="py-2 text-left">
-                                {medicine.name}
-                              </td>
-                              <td className="py-2 text-center">
-                                {medicine.dose}
-                              </td>
-                              <td className="py-2 text-center">
-                                {medicine.duration}
-                              </td>
-                              <td className="py-2 text-center">
-                                {medicine.whenToTake}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    <div className="print:page-break-before print:mt-12 text-right mt-6 w-full">
-                      <div className="flex justify-between mb-2 text-sm w-full">
-                        <span>SUB TOTAL</span>
-                        <span>
-                          ₹{" "}
+                        </p>
+                      </div>
+                      <div>
+                        <p>
+                          <strong>TIME</strong>
+                        </p>
+                        <p className="font-semibold">
+                          {loading ? (
+                            <Skeleton width={60} />
+                          ) : (
+                            invoiceData?.billTime
+                          )}
+                        </p>
+                      </div>
+                      <div>
+                        <p>
+                          <strong>STATUS</strong>
+                        </p>
+                        <p
+                          className={`font-semibold ${
+                            invoiceData?.status === "Unpaid"
+                              ? "text-red-500"
+                              : "text-green-500"
+                          }`}
+                        >
                           {loading ? (
                             <Skeleton width={70} />
                           ) : (
-                            invoiceData?.amount?.toFixed(2)
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex justify-between mb-2 text-sm w-full">
-                        <span>DISCOUNT</span>
-                        <span>
-                          {loading ? (
-                            <Skeleton width={50} />
-                          ) : (
-                            `${invoiceData?.discount}%`
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex justify-between font-semibold text-lg w-full">
-                        <span>GRAND TOTAL</span>
-                        <span>
-                          ₹{" "}
-                          {loading ? (
-                            <Skeleton width={80} />
-                          ) : (
-                            invoiceData?.totalAmount?.toFixed(2)
-                          )}
-                        </span>
-                      </div>
-                      {/* Doctor Signature Section */}
-                    </div>
-                    <div className="absolute -bottom-[150px] right-10 flex justify-end">
-                      <div className="text-center">
-                        <img
-                          src={invoiceData?.doctor?.signatureImage}
-                          alt=""
-                          className="w-32 h-12 object-cover mx-auto"
-                        />
-                        <div className="border-t border-gray-400 w-48 mb-2"></div>
-                        <p className="font-semibold">
-                          Dr.{" "}
-                          {loading ? (
-                            <Skeleton width={100} />
-                          ) : (
-                            invoiceData?.doctor?.firstName +
-                              " " +
-                              invoiceData?.doctor?.lastName || "Doctor Name"
+                            invoiceData?.status
                           )}
                         </p>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
-            {/* Account details on a new A4 page if medicines > 1 */}
-            {medicinesCount >= 2 && restMedicines.length === 0 && (
-              <div className="print:a4-page print:page-break-after w-full">
-                <div className="relative w-full h-[297mm]">
-                  <div className="absolute w-full h-full">
-                    <img src={letterhead} className="w-full h-full" alt="" />
-                  </div>
-                  <div className="inputfields absolute top-[300px] w-full max-w-3xl m-auto px-28 flex flex-col items-start justify-end bg-transparent">
-                    <div className="flex justify-between mb-2 text-sm w-full">
-                      <span>SUB TOTAL</span>
-                      <span>
-                        ₹{" "}
-                        {loading ? (
-                          <Skeleton width={70} />
-                        ) : (
-                          invoiceData?.amount?.toFixed(2)
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex justify-between mb-2 text-sm w-full">
-                      <span>DISCOUNT</span>
-                      <span>
-                        {loading ? (
-                          <Skeleton width={50} />
-                        ) : (
-                          `${invoiceData?.discount}%`
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex justify-between font-semibold text-lg w-full">
-                      <span>GRAND TOTAL</span>
-                      <span>
-                        ₹{" "}
+
+                {/* Patient Information */}
+                <div className="mb-6 py-2 border-b border-gray-300 w-full">
+                  <h3 className="font-semibold text-lg mb-2">
+                    PATIENT INFORMATION
+                  </h3>
+                  <div className="grid grid-cols-2 gap-y-2 text-sm w-full">
+                    <p>
+                      <strong>NAME:</strong>{" "}
+                      {loading ? (
+                        <Skeleton width={120} />
+                      ) : (
+                        `${invoiceData?.patient?.firstName} ${invoiceData?.patient?.lastName}`
+                      )}
+                    </p>
+                    <p>
+                      <strong>AGE:</strong>{" "}
+                      {loading ? (
+                        <Skeleton width={40} />
+                      ) : (
+                        `${invoiceData?.patient?.age} Years`
+                      )}
+                    </p>
+                    <p>
+                      <strong>GENDER:</strong>{" "}
+                      {loading ? (
+                        <Skeleton width={80} />
+                      ) : (
+                        invoiceData?.patient?.gender
+                      )}
+                    </p>
+                    <p>
+                      <strong>PHONE:</strong>{" "}
+                      {loading ? (
+                        <Skeleton width={100} />
+                      ) : (
+                        invoiceData?.patient?.phoneNumber
+                      )}
+                    </p>
+                    <p className="col-span-2">
+                      <strong>ADDRESS:</strong>{" "}
+                      {loading ? (
+                        <Skeleton width={200} />
+                      ) : (
+                        invoiceData?.patient?.address
+                      )}
+                    </p>
+                    <p className="col-span-2">
+                      <strong>PAYMENT TYPE:</strong>{" "}
+                      <span className="font-semibold">
                         {loading ? (
                           <Skeleton width={80} />
                         ) : (
-                          invoiceData?.totalAmount?.toFixed(2)
+                          invoiceData?.paymentType
                         )}
                       </span>
-                    </div>
-                    {/* Doctor Signature Section */}
-                  </div>
-                  <div className="absolute bottom-4 right-10 flex justify-end">
-                    <div className="text-center">
-                      <img
-                        src={invoiceData?.doctor?.signatureImage}
-                        alt="not found"
-                        className="w-32 h-12 object-cover mx-auto"
-                      />
-                      <div className="border-t border-gray-400 w-48 mb-2"></div>
-                      <p className="font-semibold">
-                        Dr.{" "}
-                        {loading ? (
-                          <Skeleton width={100} />
-                        ) : (
-                          invoiceData?.doctor?.firstName +
-                            " " +
-                            invoiceData?.doctor?.lastName || "Doctor Name"
-                        )}
-                      </p>
-                    </div>
+                    </p>
                   </div>
                 </div>
+
+                {/* Disease */}
+                <div className="mb-4 py-2 border-b border-gray-300 text-sm w-full">
+                  <p>
+                    <strong>DISEASE</strong>
+                  </p>
+                  <p className="font-semibold">
+                    {loading ? (
+                      <Skeleton width={120} />
+                    ) : (
+                      invoiceData?.diseaseName
+                    )}
+                  </p>
+                </div>
+
+                {/* Charges Table */}
+                <div className="mb-6 w-full">
+                  <h3 className="font-semibold text-lg mb-2">CHARGES {restCharges.length > 0 && <span className="text-xs">(Continued)</span>}</h3>
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="py-2 text-left">CHARGE TYPE</th>
+                        <th className="py-2 text-center">AMOUNT</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {loading ? (
+                        <tr>
+                          <td colSpan="2" className="py-2">
+                            <Skeleton count={3} />
+                          </td>
+                        </tr>
+                      ) : (
+                        firstPageCharges.map((charge, index) => (
+                          <tr key={index} className="border-b border-gray-200">
+                            <td className="py-2 text-left font-medium">{charge.type}</td>
+                            <td className="py-2 text-center">₹ {Number(charge.amount).toFixed(2)}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            )}
+            </div>
+            {/* Render additional pages for restCharges, 6 per page */}
+            {(() => {
+              const pages = [];
+              for (let i = 0; i < restCharges.length; i += 6) {
+                const pageCharges = restCharges.slice(i, i + 6);
+                const isLastPage = i + 6 >= restCharges.length;
+                pages.push(
+                  <div key={i} className="print:a4-page print:page-break-after w-full relative h-[297mm]">
+                    {/* Bottom image at the bottom of this page */}
+                    <div className="absolute w-full bottom-0 left-0">
+                      <img src={IvoicesBottom} className="w-full" alt="" style={{zIndex: 1}} />
+                    </div>
+                    <div className="inputfields absolute top-[10px] w-full max-w-3xl m-auto px-28 flex flex-col items-start bg-transparent">
+                      <div className="print:page-break-before w-full">
+                        <h3 className="font-semibold text-lg mb-2">
+                          CHARGES (Continued)
+                        </h3>
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-100">
+                            <tr>
+                              <th className="py-2 text-left">CHARGE TYPE</th>
+                              <th className="py-2 text-center">AMOUNT</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {pageCharges.map((charge, index) => (
+                              <tr key={index} className="border-b border-gray-200">
+                                <td className="py-2 text-left font-medium">{charge.type}</td>
+                                <td className="py-2 text-center">₹ {Number(charge.amount).toFixed(2)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      {isLastPage && (
+                        <div className="print:page-break-before print:mt-12 text-right mt-6 w-full">
+                          <div className="flex justify-between mb-2 text-sm w-full">
+                            <span>TOTAL</span>
+                            <span>
+                              ₹{" "}
+                              {loading ? (
+                                <Skeleton width={70} />
+                              ) : (
+                                invoiceData?.totalAmount?.toFixed(2)
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+              return pages;
+            })()}
           </>
         )}
       </div>

@@ -32,6 +32,19 @@ import Diseases from "../../pages/Diseases";
 import Description from "../../pages/Description";
 import PatientDashboard from "../../pages/patientPages/PatientDashboard";
 import Prescription from "../../pages/Prescription";
+import PrescriptionInvoice from "../../pages/Prescription/PrescriptionInvoice";
+import SickPage from "../../pages/Certificate/SickCertificate/SickPage";
+import MedicalPage from "../../pages/Certificate/MedicalCertificate/MedicalPage";
+import DeathPage from "../../pages/Certificate/DeathCertificate/DeathPage";
+import FitnessPage from "../../pages/Certificate/FitnessCertificate/FitnessPage";
+import SickCertificateForm from "../../pages/Certificate/SickCertificate/SickCertificateForm";
+import SickCertificate from "../../pages/Certificate/SickCertificate/SickCertificate";
+import MedicalCertificateForm from "../../pages/Certificate/MedicalCertificate/MedicalCertificateForm";
+import MedicalCertificate from "../../pages/Certificate/MedicalCertificate/MedicalCertificate";
+import DeathCertificateForm from "../../pages/Certificate/DeathCertificate/DeathCertificateForm";
+import DeathCertificate from "../../pages/Certificate/DeathCertificate/DeathCertificate";
+import FitnessCertificateForm from "../../pages/Certificate/FitnessCertificate/FitnessCertificateForm";
+import FitnessCertificate from "../../pages/Certificate/FitnessCertificate/FitnessCertificate";
 
 
 const ReceptionRoutes = ({ onLogout }) => {
@@ -78,6 +91,7 @@ const ReceptionRoutes = ({ onLogout }) => {
               <Route path="/edit-patient/:id" element={<EditPatient />} />
               <Route path="/patient/:id" element={<PatientDashboard />} />
               <Route path="/invoice/:billId" element={<Invoice />} />
+              <Route path="/prescription/:billId" element={<PrescriptionInvoice />} />
               <Route path="/insurance/:id" element={<InsuranceDetail />} />
               <Route path="/payment/edit/:id" element={<EditBill />} />
               <Route path="/analytics" element={<ReportingAnalysis />} />
@@ -86,6 +100,52 @@ const ReceptionRoutes = ({ onLogout }) => {
               <Route path="/create-bill" element={<CreateBill />} />
               <Route path="/edit-invoice" element={<EditInvoice />} />
               <Route path="/pending-invoice" element={<PendingInvoice />} />
+
+             {/* Sick Certificate */}
+              <Route path="/sick-certificate" element={<SickPage />} />
+              <Route
+                path="/create-sickcertificate"
+                element={<SickCertificateForm />}
+              />
+              <Route
+                path="/sickcertificate/:billId"
+                element={<SickCertificate />}
+              />
+
+              {/* Medical Certificate */}
+              <Route path="/medical-certificate" element={<MedicalPage />} />
+              <Route
+                path="/create-medicalcertificate"
+                element={<MedicalCertificateForm />}
+              />
+              <Route
+                path="/medicalcertificate/:billId"
+                element={<MedicalCertificate />}
+              />
+
+              {/* Death Certificate */}
+              <Route path="/death-certificate" element={<DeathPage />} />
+              <Route
+                path="/create-deathcertificate"
+                element={<DeathCertificateForm />}
+              />
+              <Route
+                path="/deathcertificate/:billId"
+                element={<DeathCertificate />}
+              />
+
+              {/* Fitness Certificate */}
+              <Route path="/fitness-certificate" element={<FitnessPage />} />
+              <Route
+                path="/create-fitnesscertificate"
+                element={<FitnessCertificateForm />}
+              />
+              <Route
+                path="/fitnesscertificate/:billId"
+                element={<FitnessCertificate />}
+              />
+
+
             </Routes>
           )}
         </div>

@@ -38,7 +38,7 @@ const DoctorCountDepartment = () => {
   }, []);
 
   return (
-    <div className="p-4 md:p-6 bg-white rounded-xl shadow-md h-full">
+    <div className="p-4 md:p-6 bg-white rounded-xl shadow-md">
       <div className="sticky top-0 bg-white z-10 border-b pb-2 mb-2">
         <h2 className="text-base md:text-lg font-semibold mb-4">Doctor Count by Department</h2>
         <div className="flex justify-between text-xs md:text-sm font-semibold text-gray-500">

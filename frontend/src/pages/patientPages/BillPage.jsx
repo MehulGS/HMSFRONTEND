@@ -61,7 +61,7 @@ const BillPage = () => {
   );
 
   return (
-    <div className="p-4 md:p-6 bg-white rounded-xl h-full">
+    <div className="p-4 md:p-6 bg-white rounded-xl">
       {/* Tabs for Unpaid and Paid Bills */}
       <div className="mb-4 flex flex-wrap space-x-4 md:space-x-6 border-b">
         <button

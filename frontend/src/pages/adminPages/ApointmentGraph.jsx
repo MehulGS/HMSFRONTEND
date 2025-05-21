@@ -63,7 +63,7 @@ const AppointmentGraph = () => {
   };
 
   return (
-    <div className="p-4 md:p-6 bg-white rounded-xl shadow-md h-full">
+    <div className="p-4 md:p-6 bg-white rounded-xl shadow-md">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg md:text-xl font-semibold text-gray-700">Appointment Summary</h2>
         

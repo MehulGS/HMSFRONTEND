@@ -143,7 +143,7 @@ const TeleConsultation = () => {
   };
 
   return (
-    <div className="bg-white p-4 md:p-6 rounded-xl shadow-lg h-full">
+    <div className="bg-white p-4 md:p-6 rounded-xl shadow-lg">
       {/* Tabs for Appointment Types */}
       <div className="flex flex-wrap md:space-x-4 border-b mb-4">
         {[

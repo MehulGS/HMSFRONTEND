@@ -90,7 +90,7 @@ const PrescriptionAccessPage = () => {
   };
 
   return (
-    <div className="bg-white p-4 md:p-6 rounded-xl shadow-lg h-full">
+    <div className="bg-white p-4 md:p-6 rounded-xl shadow-lg">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 space-y-3 md:space-y-0">
         <h2 className="text-xl md:text-2xl font-semibold">Prescription Access</h2>
         <div

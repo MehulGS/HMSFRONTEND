@@ -74,14 +74,14 @@ const CardData = () => {
         borderColor="border-[#2F855A]"
         loading={loading}
       />
-      <InfoCard
+      {/* <InfoCard
         icon={<Assignment className="text-[#D53F8C]" />}
         label="Total Claim"
         value={totalClaims}
         iconBgColor="bg-[#FFF5F7]"
         borderColor="border-[#B83280]"
         loading={loading}
-      />
+      /> */}
     </div>
   );
 };

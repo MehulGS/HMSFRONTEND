@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
-import { FaEye, FaEdit, FaTrash, FaSearch, FaUserPlus } from "react-icons/fa";
+import { FaEye, FaEdit, FaTrash, FaSearch, FaUserPlus, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import api from "../../api/api";
 import noRecordImage from "../../assets/images/Frame 1116602772.png";
 import userImage from "../../assets/images/user.png";
@@ -17,6 +17,9 @@ const ReceptionManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [doctorToDelete, setDoctorToDelete] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [selectedRows, setSelectedRows] = useState([]);
   const token = localStorage.getItem("token");
   const decoded = jwtDecode(token);
   const role=decoded.role
@@ -85,6 +88,59 @@ const ReceptionManagement = () => {
       .includes(searchTerm.toLowerCase())
   );
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredDoctors.length / rowsPerPage);
+  const paginatedDoctors = filteredDoctors.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
+
+  // SickPage-style pagination helpers
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      if (currentPage <= 4) {
+        pageNumbers.push(1, 2, 3, 4, 5, '...', totalPages);
+      } else if (currentPage >= totalPages - 3) {
+        pageNumbers.push(1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+      } else {
+        pageNumbers.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
+      }
+    }
+    return pageNumbers;
+  };
+  const indexOfFirstItem = (currentPage - 1) * rowsPerPage;
+  const indexOfLastItem = Math.min(currentPage * rowsPerPage, filteredDoctors.length);
+  const handlePageChange = (pageNum) => {
+    if (pageNum >= 1 && pageNum <= totalPages) setCurrentPage(pageNum);
+  };
+  const handleRowsPerPageChange = (e) => {
+    setRowsPerPage(Number(e.target.value));
+    setCurrentPage(1);
+  };
+
+  // Row selection logic
+  const isAllSelected = paginatedDoctors.length > 0 && paginatedDoctors.every((doc) => selectedRows.includes(doc._id));
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedRows([
+        ...selectedRows,
+        ...paginatedDoctors.filter((doc) => !selectedRows.includes(doc._id)).map((doc) => doc._id),
+      ]);
+    } else {
+      setSelectedRows(selectedRows.filter((id) => !paginatedDoctors.some((doc) => doc._id === id)));
+    }
+  };
+  const handleSelectRow = (id) => {
+    setSelectedRows((prev) =>
+      prev.includes(id) ? prev.filter((rowId) => rowId !== id) : [...prev, id]
+    );
+  };
+
   return (
     <div className="min-h-100">
       <div className="bg-white p-4 md:p-6 rounded-xl h-full">
@@ -101,6 +157,15 @@ const ReceptionManagement = () => {
                 className="bg-gray-100 focus:outline-none w-full"
               />
             </div>
+            <select
+              value={rowsPerPage}
+              onChange={e => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+              className="border rounded-xl px-2 py-1 text-sm"
+            >
+              {[5, 10, 20, 50].map(num => (
+                <option key={num} value={num}>{num} / page</option>
+              ))}
+            </select>
             <Link
               to={`/${role}/add-new-receiptionist`}
               className="bg-customBlue text-white px-4 py-2 rounded-xl flex items-center space-x-2"
@@ -130,6 +195,7 @@ const ReceptionManagement = () => {
                 {[...Array(5)].map((_, index) => (
                   <tr key={index} className="border-b">
                     <td className="px-3 md:px-6 py-4"><Skeleton height={40} /></td>
+                    <td className="px-3 md:px-6 py-4"><Skeleton height={40} /></td>
                     <td className="px-3 md:px-6 py-4"><Skeleton width={80} height={20} /></td>
                     <td className="px-3 md:px-6 py-4"><Skeleton width={80} height={20} /></td>
                     <td className="px-3 md:px-6 py-4"><Skeleton width={100} height={20} /></td>
@@ -139,9 +205,9 @@ const ReceptionManagement = () => {
                   </tr>
                 ))}
               </tbody>
-            ) : filteredDoctors.length > 0 ? (
+            ) : paginatedDoctors.length > 0 ? (
               <tbody>
-                {filteredDoctors.map((doctor) => (
+                {paginatedDoctors.map((doctor) => (
                   <tr key={doctor._id} className="border-b">
                     <td className="px-3 md:px-6 py-4 flex items-center space-x-3">
                       <img
@@ -202,6 +268,69 @@ const ReceptionManagement = () => {
             )}
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        {!loading && filteredDoctors.length > 0 && (
+          <div className="flex flex-col md:flex-row justify-between items-center mt-4 px-4 space-y-4 md:space-y-0">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600">Show</span>
+              <select
+                value={rowsPerPage}
+                onChange={handleRowsPerPageChange}
+                className="border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#0eabeb] focus:border-transparent"
+              >
+                {[5, 10, 20, 50, 100].map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+              <span className="text-sm text-gray-600">entries</span>
+            </div>
+            <div className="text-sm text-gray-600">
+              Showing {filteredDoctors.length === 0 ? 0 : indexOfFirstItem + 1} to {indexOfLastItem} of {filteredDoctors.length} entries
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`p-2 rounded-lg ${
+                  currentPage === 1
+                    ? "text-gray-400 cursor-not-allowed"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                <FaChevronLeft />
+              </button>
+              {getPageNumbers().map((pageNum, index) => (
+                pageNum === '...'
+                  ? <span key={`ellipsis-${index}`} className="px-2">...</span>
+                  : <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`px-3 py-1 rounded-lg ${
+                        currentPage === pageNum
+                          ? "bg-[#0eabeb] text-white"
+                          : "text-gray-600 hover:bg-gray-100"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+              ))}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`p-2 rounded-lg ${
+                  currentPage === totalPages
+                    ? "text-gray-400 cursor-not-allowed"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                <FaChevronRight />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* OffCanvas Component */}
