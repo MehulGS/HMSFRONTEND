@@ -20,7 +20,7 @@ const AddPatientForm = () => {
     address: "",
     age: "",
     email: "",
-    koc: "", // Key of Contact
+    KCO: "", // Key of Contact
     drugHistory: "", // Drug History
   });
 
@@ -275,9 +275,9 @@ const AddPatientForm = () => {
                 placeholder="Auto-calculated from date of birth"
               />
               <InputField
-                id="koc"
+                id="KCO"
                 label="Key of Contact"
-                value={formData.koc}
+                value={formData.KCO}
                 onChange={handleInputChange}
                 placeholder="Enter name and relationship of emergency contact"
               />
