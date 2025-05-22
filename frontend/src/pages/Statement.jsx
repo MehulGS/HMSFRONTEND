@@ -30,13 +30,15 @@ const Statement = () => {
   const [timeframe, setTimeframe] = useState("Year");
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
-    totalAmount: 0,
-    totalInvoices: 0,
-    averageAmount: 0,
-    monthlyStats: {},
+    revenue: { total: 0, paid: 0, unpaid: 0 },
+    bills: { total: 0, paid: 0, unpaid: 0 },
+    chargeBreakdown: {},
     paymentTypeBreakdown: {},
-    statusBreakdown: {},
-    timeSeriesData: [],
+    timeSeriesData: {
+      daily: [],
+      monthly: [],
+      weekly: []
+    },
     topPatients: []
   });
 
@@ -46,11 +48,6 @@ const Statement = () => {
       try {
         const response = await api.get("/users/amountStatistics");
         const { data } = response.data;
-        // Filter out Insurance from paymentTypeBreakdown
-        if (data.paymentTypeBreakdown) {
-          const { Insurance, ...rest } = data.paymentTypeBreakdown;
-          data.paymentTypeBreakdown = rest;
-        }
         setStats(data);
       } catch (error) {
         console.error("Error fetching account data:", error);
@@ -70,52 +67,28 @@ const Statement = () => {
   };
 
   const getTimeSeriesData = () => {
-    const timeSeries = stats.timeSeriesData || [];
-    let filteredData = [...timeSeries];
-
-    // Filter data based on timeframe
+    let timeSeries = [];
+    
     if (timeframe === "Year") {
-      // Group by year
-      const yearData = {};
-      timeSeries.forEach(item => {
-        const [year] = item.month.split('-');
-        if (!yearData[year]) {
-          yearData[year] = {
-            paid: 0,
-            unpaid: 0,
-            month: year
-          };
-        }
-        yearData[year].paid += item.paid;
-        yearData[year].unpaid += item.unpaid;
-      });
-      filteredData = Object.values(yearData);
+      timeSeries = stats.timeSeriesData.monthly || [];
     } else if (timeframe === "Month") {
-      // Keep monthly data as is
-      filteredData = timeSeries;
+      timeSeries = stats.timeSeriesData.daily || [];
     } else if (timeframe === "Week") {
-      // For week view, we'll show the last 7 days
-      const today = new Date();
-      const weekAgo = new Date(today);
-      weekAgo.setDate(today.getDate() - 7);
-      
-      filteredData = timeSeries.filter(item => {
-        const [year, month] = item.month.split('-');
-        const itemDate = new Date(year, month - 1);
-        return itemDate >= weekAgo && itemDate <= today;
-      });
+      timeSeries = stats.timeSeriesData.weekly || [];
     }
 
-    const labels = filteredData.map(item => {
+    const labels = timeSeries.map(item => {
       if (timeframe === "Year") {
         return item.month;
+      } else if (timeframe === "Month") {
+        return item.date;
+      } else {
+        return item.week;
       }
-      const [year, month] = item.month.split('-');
-      return timeframe === "Month" ? `${month}/${year}` : item.month;
     });
     
-    const paidData = filteredData.map(item => item.paid);
-    const unpaidData = filteredData.map(item => item.unpaid);
+    const paidData = timeSeries.map(item => item.revenue?.paid || 0);
+    const unpaidData = timeSeries.map(item => item.revenue?.unpaid || 0);
 
     return {
       labels,
@@ -226,27 +199,27 @@ const Statement = () => {
             <Skeleton height={24} />
           ) : (
             <p className="text-2xl font-bold text-[#0eabeb]">
-              {formatCurrency(stats.totalAmount)}
+              {formatCurrency(stats.revenue.total)}
             </p>
           )}
         </div>
         <div className="bg-white p-4 rounded-xl shadow-md">
-          <h3 className="text-sm text-gray-500 mb-1">Total Invoices</h3>
+          <h3 className="text-sm text-gray-500 mb-1">Total Bills</h3>
           {loading ? (
             <Skeleton height={24} />
           ) : (
             <p className="text-2xl font-bold text-[#A35DFF]">
-              {stats.totalInvoices}
+              {stats.bills.total}
             </p>
           )}
         </div>
         <div className="bg-white p-4 rounded-xl shadow-md">
-          <h3 className="text-sm text-gray-500 mb-1">Average Invoice Value</h3>
+          <h3 className="text-sm text-gray-500 mb-1">Average Bill Value</h3>
           {loading ? (
             <Skeleton height={24} />
           ) : (
             <p className="text-2xl font-bold text-[#4CAF50]">
-              {formatCurrency(stats.averageAmount)}
+              {formatCurrency(stats.revenue.total / stats.bills.total)}
             </p>
           )}
         </div>
@@ -302,17 +275,19 @@ const Statement = () => {
           )}
         </div>
         <div className="bg-white p-4 rounded-xl shadow-md">
-          <h3 className="text-lg font-semibold mb-4">Payment Status</h3>
+          <h3 className="text-lg font-semibold mb-4">Bill Status</h3>
           {loading ? (
             <Skeleton height={100} />
           ) : (
             <div className="space-y-3">
-              {Object.entries(stats.statusBreakdown || {}).map(([status, amount]) => (
-                <div key={status} className="flex justify-between items-center">
-                  <span className="text-gray-600">{status}</span>
-                  <span className="font-semibold">{formatCurrency(amount)}</span>
-                </div>
-              ))}
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Paid Bills</span>
+                <span className="font-semibold">{stats.bills.paid} ({((stats.bills.paid / stats.bills.total) * 100).toFixed(1)}%)</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Unpaid Bills</span>
+                <span className="font-semibold">{stats.bills.unpaid} ({((stats.bills.unpaid / stats.bills.total) * 100).toFixed(1)}%)</span>
+              </div>
             </div>
           )}
         </div>

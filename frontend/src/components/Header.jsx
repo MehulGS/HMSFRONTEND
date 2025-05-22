@@ -95,7 +95,6 @@ const Header = ({ activeMenu, onSearch, toggleSidebar }) => {
       socketRef.current.on("new_notification", (newNotification) => {
         setNotifications(prev => [newNotification, ...prev]);
         setUnreadCount(prev => prev + 1);
-        console.log(newNotification);
       });
     }
 
@@ -221,6 +220,37 @@ const Header = ({ activeMenu, onSearch, toggleSidebar }) => {
   const pathSegments = location.pathname.split("/").filter(Boolean); // Remove empty strings
   const lastSegment =
     pathSegments.length > 0 ? pathSegments[pathSegments.length - 1] : "Home";
+
+  // Add mark as read handler
+  const handleMarkAsRead = (notificationId) => {
+    if (socketRef.current) {
+      socketRef.current.emit('mark_read', notificationId);
+      // Update local state to reflect the read status
+      setNotifications(prev => 
+        prev.map(notification => 
+          notification._id === notificationId 
+            ? { ...notification, isRead: true }
+            : notification
+        )
+      );
+      // Decrease unread count if the notification was unread
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    }
+  };
+
+  // Add mark all as read handler
+  const handleMarkAllAsRead = () => {
+    if (socketRef.current) {
+      socketRef.current.emit('mark_all_read');
+      // Update local state to reflect all notifications as read
+      setNotifications(prev => 
+        prev.map(notification => ({ ...notification, isRead: true }))
+      );
+      // Reset unread count
+      setUnreadCount(0);
+    }
+  };
+
   return (
     <div className="w-full px-4 py-4 bg-white shadow-md flex items-center">
       {/* Left Section - Hamburger Menu */}
@@ -287,19 +317,49 @@ const Header = ({ activeMenu, onSearch, toggleSidebar }) => {
               </div>
               <div className="max-h-96 overflow-y-auto">
                 {notifications.length > 0 ? (
-                  notifications.map((notification) => (
-                    <div
-                      key={notification._id}
-                      className="p-4 border-b border-gray-100 hover:bg-gray-50"
-                    >
-                      <div className="flex justify-between items-start">
-                        <p className="text-sm text-gray-800">{notification.message}</p>
-                        <span className="text-xs text-gray-500">
-                          {formatTimeAgo(notification.createdAt)}
-                        </span>
+                  <>
+                    {notifications.map((notification) => (
+                      <div
+                        key={notification._id}
+                        className={`p-4 border-b border-gray-100 hover:bg-[#f3f8fa] transition-colors flex rounded-lg mb-1 ${!notification.isRead ? 'bg-[#eaf6fd]' : 'bg-white'}`}
+                        style={{ position: 'relative' }}
+                      >
+                        {/* Unread dot */}
+                        {!notification.isRead && (
+                          <span className="w-2 h-2 bg-[#0eabeb] rounded-full absolute left-2 top-5"></span>
+                        )}
+                        <div className="flex-1 pl-3">
+                          <p className="text-sm text-gray-800 mb-2">
+                            {notification.message}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">
+                              {formatTimeAgo(notification.createdAt)}
+                            </span>
+                            {!notification.isRead && (
+                              <button
+                                onClick={() => handleMarkAsRead(notification._id)}
+                                className="ml-3 px-2 py-1 text-xs rounded bg-[#0eabeb] text-white hover:bg-[#0a8cbb] transition-colors shadow-sm"
+                                style={{ minWidth: 80 }}
+                              >
+                                Mark as read
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))}
+                    {unreadCount > 0 && (
+                      <div className="p-4 border-t border-gray-200 bg-white sticky bottom-0 z-10">
+                        <button
+                          onClick={handleMarkAllAsRead}
+                          className="w-full text-sm text-white bg-[#0eabeb] hover:bg-[#0a8cbb] font-medium py-2 rounded transition-colors shadow"
+                        >
+                          Mark all as read
+                        </button>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="p-4 text-center text-gray-500">
                     No notifications

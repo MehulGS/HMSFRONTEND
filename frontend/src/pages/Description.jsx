@@ -25,7 +25,6 @@ const Description = () => {
       setLoading(true);
       setError(null);
       const res = await api.get('/description');
-      console.log(res.data);
       if (res.data && res.data) {
         setdiscription(res.data);
       } else {

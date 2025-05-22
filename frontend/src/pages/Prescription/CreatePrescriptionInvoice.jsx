@@ -164,7 +164,6 @@ const CreatePrescriptionInvoice = () => {
     if (name === 'followUpTime') {
       // Convert and log the time in 12-hour format
       const time12Hour = convertTo12Hour(value);
-      console.log('Follow-up Time:', time12Hour);
       
       setFormValues({
         ...formValues,
@@ -329,15 +328,13 @@ const CreatePrescriptionInvoice = () => {
   // Modify handleSubmit to match API requirements
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Submit button clicked');
     
     try {
       // Validate form first
       if (!validateForm()) {
-        console.log('Form validation failed:', errors);
+        toast.error('Form validation failed:', errors);
         return;
       }
-      console.log('Form validation passed');
 
       // Get hospitalId from token
       const token = localStorage.getItem("token");
@@ -364,7 +361,6 @@ const CreatePrescriptionInvoice = () => {
           };
         });
 
-      console.log('Formatted medicines:', formattedMedicines);
 
       // Format diseases data - now handling multiple diseases
       const formattedDiseases = formValues.diseases.map(disease => ({
@@ -373,7 +369,6 @@ const CreatePrescriptionInvoice = () => {
         description: disease.description || ""
       }));
 
-      console.log('Formatted diseases:', formattedDiseases);
 
       // Format descriptions data - use the _id directly from the description object
       const formattedDescriptions = formValues.descriptions.map(description => ({
@@ -381,7 +376,6 @@ const CreatePrescriptionInvoice = () => {
         description: description.description
       }));
 
-      console.log('Formatted descriptions:', formattedDescriptions);
 
       // Format follow-up data - make it conditional and truly optional
       const followUpData = formValues.followUpDate && formValues.followUpTime ? {
@@ -393,7 +387,6 @@ const CreatePrescriptionInvoice = () => {
         notificationSent: false
       } : null;
 
-      console.log('Follow-up data:', followUpData);
 
       // Prepare the final request data
       const prescriptionData = {
@@ -408,20 +401,17 @@ const CreatePrescriptionInvoice = () => {
       };
 
       // Log the data being sent
-      console.log('Sending Prescription Data:', prescriptionData);
 
       // Make API call to create prescription
-      console.log('Making API call to /prescriptions');
       const response = await api.post('/prescription', prescriptionData);
-      console.log('API Response:', response);
 
-      if (response.data) {
+     
         toast.success('Prescription created successfully!');
         // Navigate to today's appointments page
-        navigate('/${role}/today-appointments');
-      } else {
-        toast.error('Failed to create prescription');
-      }
+        navigate(`/${role}/today-appointments`);
+      
+       
+      
     } catch (error) {
       console.error('Error creating prescription:', error);
       console.error('Error details:', {
@@ -447,7 +437,7 @@ const CreatePrescriptionInvoice = () => {
   };
 
   return (
-    <form className="flex flex-col gap-6 bg-white w-full max-w-4xl mx-auto" onSubmit={handleSubmit}>
+    <form className="flex flex-col gap-6 bg-white w-full  mx-auto p-8" onSubmit={handleSubmit}>
       <h2 className="text-3xl font-bold">Create Prescription</h2>
 
       {/* Patient Info */}

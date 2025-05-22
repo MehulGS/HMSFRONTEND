@@ -39,9 +39,6 @@ const AdminRegister = () => {
     phone: "",
     name: "",
     address: "",
-    country: "",
-    state: "",
-    city: "",
     zipCode: "",
   });
   const [hospitals, setHospitals] = useState([]);
@@ -103,6 +100,7 @@ const AdminRegister = () => {
       formData.append(key, value);
     });
   
+    console.log(formData);
     try {
       const response = await api.post("/hospitals/hospitals", formData, {
         headers: {
@@ -110,11 +108,11 @@ const AdminRegister = () => {
         },
       });
   
-      if (response.status === 201) {
+      
         toast.success("Hospital created successfully!");
         setHospitals([...hospitals, response.data.hospital]);
         closeModal();
-      }
+      
     } catch (error) {
       toast.error("Failed to create hospital. Please try again.");
       setHospitalError("Failed to create hospital. Please try again.");
@@ -123,7 +121,7 @@ const AdminRegister = () => {
         error.response ? error.response.data : error.message
       );
     }
-  };
+  }; 
   
 
   const toggleDropdown = () => {

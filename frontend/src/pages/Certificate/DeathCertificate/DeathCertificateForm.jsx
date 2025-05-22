@@ -159,7 +159,6 @@ const DeathCertificateForm = () => {
         birthDate,
         status: "Active"
       }
-      console.log(certificateData)
 
       const response = await api.post('/certificate', certificateData)
       

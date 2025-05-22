@@ -156,7 +156,6 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
     if (name === 'followUpTime') {
       // Convert and log the time in 12-hour format
       const time12Hour = convertTo12Hour(value);
-      console.log('Follow-up Time:', time12Hour);
       
       setFormValues({
         ...formValues,
@@ -321,15 +320,13 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
   // Modify handleSubmit to match API requirements
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Submit button clicked');
     
     try {
       // Validate form first
       if (!validateForm()) {
-        console.log('Form validation failed:', errors);
+        toast.error('Form validation failed:', errors);
         return;
       }
-      console.log('Form validation passed');
 
       // Format medicines data according to API requirements
       const formattedMedicines = formValues.medicines
@@ -347,7 +344,6 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
           };
         });
 
-      console.log('Formatted medicines:', formattedMedicines);
 
       // Format diseases data - now handling multiple diseases
       const formattedDiseases = formValues.diseases.map(disease => ({
@@ -356,7 +352,6 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
         description: disease.description || ""
       }));
 
-      console.log('Formatted diseases:', formattedDiseases);
 
       // Format descriptions data - use the _id directly from the description object
       const formattedDescriptions = formValues.descriptions.map(description => ({
@@ -364,7 +359,6 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
         description: description.description
       }));
 
-      console.log('Formatted descriptions:', formattedDescriptions);
 
       // Format follow-up data - make it conditional and truly optional
       const followUpData = formValues.followUpDate && formValues.followUpTime ? {
@@ -376,7 +370,6 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
         notificationSent: false
       } : null;
 
-      console.log('Follow-up data:', followUpData);
 
       // Prepare the final request data
       const prescriptionData = {
@@ -390,12 +383,9 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
       };
 
       // Log the data being sent
-      console.log('Sending Prescription Data:', prescriptionData);
 
       // Make API call to create prescription
-      console.log('Making API call to /prescriptions');
       const response = await api.post('/prescription', prescriptionData);
-      console.log('API Response:', response);
 
       if (response.data) {
         toast.success('Prescription created successfully!');

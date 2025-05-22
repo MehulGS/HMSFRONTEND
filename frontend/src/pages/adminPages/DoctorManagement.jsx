@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
-import { FaEye, FaEdit, FaTrash, FaSearch, FaUserPlus } from "react-icons/fa";
+import { FaEye, FaEdit, FaTrash, FaSearch, FaUserPlus, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import DoctorOffCanvas from "../../components/DoctorOffCanvas";
 import api from "../../api/api";
 import noRecordImage from "../../assets/images/Frame 1116602772.png";
@@ -17,6 +17,9 @@ const DoctorManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [doctorToDelete, setDoctorToDelete] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [selectedRow, setSelectedRow] = useState(null);
   const decode=jwtDecode
 
   const token=localStorage.getItem("token")
@@ -86,6 +89,32 @@ const DoctorManagement = () => {
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const paginatedDoctors = filteredDoctors.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredDoctors.length / itemsPerPage);
+
+  // Pagination controls
+  const getPageNumbers = () => {
+    const maxVisiblePages = 5;
+    if (totalPages <= maxVisiblePages) {
+      return [...Array(totalPages)].map((_, i) => i + 1);
+    }
+    if (currentPage <= 3) {
+      return [1, 2, 3, 4, "...", totalPages];
+    }
+    if (currentPage >= totalPages - 2) {
+      return [1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+    return [1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages];
+  };
+
+  // Row selection (highlight)
+  const handleRowClick = (doctorId) => {
+    setSelectedRow((prev) => (prev === doctorId ? null : doctorId));
+  };
 
   return (
     <div className="min-h-100">
@@ -177,10 +206,14 @@ const DoctorManagement = () => {
                   </tr>
                 ))}
               </tbody>
-            ) : filteredDoctors.length > 0 ? (
+            ) : paginatedDoctors.length > 0 ? (
               <tbody>
-                {filteredDoctors.map((doctor) => (
-                  <tr key={doctor._id} className="border-b">
+                {paginatedDoctors.map((doctor) => (
+                  <tr
+                    key={doctor._id}
+                    className={`border-b cursor-pointer transition-colors duration-100 ${selectedRow === doctor._id ? "bg-blue-50" : ""}`}
+                    onClick={() => handleRowClick(doctor._id)}
+                  >
                     <td className="px-3 md:px-6 py-4 flex items-center space-x-3">
                       <img
                         src={
@@ -267,6 +300,59 @@ const DoctorManagement = () => {
             )}
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        {!loading && filteredDoctors.length > 0 && (
+          <div className="flex flex-col md:flex-row justify-between items-center mt-4 px-2 md:px-4 space-y-3 md:space-y-0 w-full">
+            <div className="flex items-center space-x-2">
+              <span className="text-xs md:text-sm text-gray-600">Show</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                className="border border-gray-300 rounded-lg px-2 py-1 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#0eabeb] focus:border-transparent"
+              >
+                {[5, 10, 25, 50, 100].map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+              <span className="text-xs md:text-sm text-gray-600">entries</span>
+            </div>
+            <div className="text-xs md:text-sm text-gray-600 text-center">
+              Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredDoctors.length)} of {filteredDoctors.length} entries
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setCurrentPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`p-2 rounded-lg ${currentPage === 1 ? "text-gray-400 cursor-not-allowed" : "text-gray-600 hover:bg-gray-100"}`}
+              >
+                <FaChevronLeft />
+              </button>
+              {getPageNumbers().map((pageNum, index) =>
+                pageNum === "..." ? (
+                  <span key={`ellipsis-${index}`} className="px-2">...</span>
+                ) : (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`px-2 md:px-3 py-1 rounded-lg text-xs md:text-sm ${currentPage === pageNum ? "bg-[#0eabeb] text-white" : "text-gray-600 hover:bg-gray-100"}`}
+                  >
+                    {pageNum}
+                  </button>
+                )
+              )}
+              <button
+                onClick={() => setCurrentPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`p-2 rounded-lg ${currentPage === totalPages ? "text-gray-400 cursor-not-allowed" : "text-gray-600 hover:bg-gray-100"}`}
+              >
+                <FaChevronRight />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* OffCanvas Component */}

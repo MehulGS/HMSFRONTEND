@@ -62,7 +62,6 @@ const PrescriptionInvoice = () => {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
-        console.log(response.data.data);
         setPrescriptionData(response.data.data.prescription);
       } catch (error) {
         console.error("Error fetching prescription:", error);

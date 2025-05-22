@@ -132,15 +132,17 @@ const Prescription = () => {
               className="bg-[#f6f8fb] focus:outline-none w-full text-xs md:text-sm"
             />
           </div>
-          <div>
-            <button
-              className="w-full text-sm bg-[#0eabeb] text-white px-4 py-2 rounded-xl font-medium flex items-center justify-center hover:bg-[#0099cc]"
-              onClick={() => navigate(`/${role}/create-prescription`)}
-            >
-              <FaPlus className="mr-2" />
-              Create Prescription
-            </button>
-          </div>
+          {role === "doctor" && (
+            <div>
+              <button
+                className="w-full text-sm bg-[#0eabeb] text-white px-4 py-2 rounded-xl font-medium flex items-center justify-center hover:bg-[#0099cc]"
+                onClick={() => navigate(`/${role}/create-prescription`)}
+              >
+                <FaPlus className="mr-2" />
+                Create Prescription
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import SidePanel from "./SidePanel";
@@ -12,6 +12,23 @@ const Login = ({ setIsAuthenticated }) => {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(true);
   const navigate = useNavigate();
+
+  // Check for token expiry (12 hours)
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const loginTimestamp = localStorage.getItem("loginTimestamp");
+    if (token && loginTimestamp) {
+      const now = Date.now();
+      const diff = now - parseInt(loginTimestamp, 10);
+      const twelveHours = 12 * 60 * 60 * 1000;
+      if (diff > twelveHours) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("loginTimestamp");
+        setIsAuthenticated(false);
+        navigate("/login");
+      }
+    }
+  }, [setIsAuthenticated, navigate]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -37,6 +54,7 @@ const Login = ({ setIsAuthenticated }) => {
         const { token, role } = await loginUser({ email, password });
 
         localStorage.setItem("token", token);
+        localStorage.setItem("loginTimestamp", Date.now().toString());
         setIsAuthenticated(true); // Set authenticated state to true
         toast.success("Login successfully!");
         if (role === "admin") {
@@ -120,12 +138,12 @@ const Login = ({ setIsAuthenticated }) => {
             </div>
 
             <div className="flex justify-between items-center mb-4">
-              <div>
+              {/* <div>
                 <input type="checkbox" id="remember" className="mr-2" />
                 <label htmlFor="remember" className="text-sm">
                   Remember me
                 </label>
-              </div>
+              </div> */}
               <Link
                 to={"/forgot-password"}
                 className="text-sm text-blue-500 hover:underline"
@@ -140,12 +158,6 @@ const Login = ({ setIsAuthenticated }) => {
               Login
             </button>
           </form>
-          <p className="text-center mt-4 text-sm">
-            Don’t have an account?{" "}
-            <Link to={"/patient-registration"} className="text-blue-500 hover:underline">
-              Registration
-            </Link>
-          </p>
         </div>
       </div>
       <div className="hidden md:flex md:w-1/2">
