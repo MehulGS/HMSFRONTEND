@@ -81,6 +81,15 @@ const BookAppointment = () => {
         // Set the doctors in state
         setDoctors(fetchedDoctors);
 
+        // Set the latest doctor as default if there are doctors available
+        if (fetchedDoctors && fetchedDoctors.length > 0) {
+          // Sort doctors by creation date (assuming there's a createdAt field)
+          const sortedDoctors = [...fetchedDoctors].sort((a, b) => 
+            new Date(b.createdAt) - new Date(a.createdAt)
+          );
+          setSelectedDoctor(sortedDoctors[0]._id);
+        }
+
         // Extract unique specialties
         const specialtiesSet = new Set();
         fetchedDoctors.forEach((doctor) => {
@@ -474,43 +483,6 @@ const BookAppointment = () => {
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
         {/* Dropdowns for filters */}
-        <SelectField
-          id="specialty"
-          label="Specialty"
-          options={specialties.map((specialty) => ({
-            label: specialty,
-            value: specialty,
-          }))}
-          value={specialty}
-          onChange={(e) => setSpecialty(e.target.value)}
-        />
-        <SelectField
-          id="country"
-          label="Country"
-          options={countryData.map((c) => ({ label: c.name, value: c.name }))}
-          value={country}
-          onChange={handleCountryChange}
-        />
-        <SelectField
-          id="state"
-          label="State"
-          options={filteredStates.map((state) => ({
-            label: state.name,
-            value: state.name,
-          }))}
-          value={state}
-          onChange={handleStateChange}
-        />
-        <SelectField
-          id="city"
-          label="City"
-          options={filteredCities.map((city) => ({
-            label: city.name,
-            value: city.name,
-          }))}
-          value={city}
-          onChange={handleCityChange}
-        />
         <SelectField
           id="doctor"
           label="Doctor"

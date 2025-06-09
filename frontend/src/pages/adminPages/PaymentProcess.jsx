@@ -447,6 +447,7 @@ const PaymentProcess = () => {
                   >
                     <option value="Cash">Cash</option>
                     <option value="Online">Online</option>
+                    <option value="FOC">FOC</option>
                   </select>
                 </div>
               )}

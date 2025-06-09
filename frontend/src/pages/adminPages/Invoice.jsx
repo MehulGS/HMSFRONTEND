@@ -4,8 +4,8 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { FaPrint } from "react-icons/fa";
 import api from "../../api/api";
-import InvoicesHead from "../../assets/images/Invoice.png";
-import IvoicesTop from "../../assets/images/Invoice-T.png";
+import InvoicesHead from "../../assets/images/letterhead.png";
+import IvoicesTop from "../../assets/images/letterhead-T.png";
 import IvoicesBottom from "../../assets/images/Invoice-F.png";
 
 

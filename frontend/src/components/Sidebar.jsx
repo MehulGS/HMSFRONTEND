@@ -159,11 +159,6 @@ const Sidebar = ({ role, onLogout, isSidebarOpen, setIsSidebarOpen }) => {
         path: `/${role}/dashboard`,
       },
       {
-        label: "Doctor Management",
-        icon: DoctorManagementIcon,
-        path: `/${role}/doctor-management`,
-      },
-      {
         label: "Patient Management",
         icon: VectorIcon,
         path: `/${role}/patient-management`,
@@ -185,27 +180,6 @@ const Sidebar = ({ role, onLogout, isSidebarOpen, setIsSidebarOpen }) => {
           { label: "Prescription", path: `/${role}/prescription` },
           { label: "Medicines", path: `/${role}/medicines` },
         ],
-      },
-      {
-        label: "Certificate",
-        icon: CertiFicateIcon,
-        subMenu: [
-          { label: "Sick Certificate", path: `/${role}/sick-certificate` },
-          { label: "Death Certificate", path: `/${role}/death-certificate` },
-          {
-            label: "Fitness Certificate",
-            path: `/${role}/fitness-certificate`,
-          },
-          {
-            label: "Medical Certificate",
-            path: `/${role}/medical-certificate`,
-          },
-        ],
-      },
-      {
-        label: "Reporting And Analytics",
-        icon: ReportIcon,
-        path: `/${role}/analytics`,
       },
       {
         label: "Appointment booking",

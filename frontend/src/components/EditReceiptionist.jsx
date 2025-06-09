@@ -6,10 +6,15 @@ import Swal from "sweetalert2";
 import countryData from "../countryjson/countries+states+cities.json";
 import toast from "react-hot-toast";
 import api from "../api/api";
+import { jwtDecode } from "jwt-decode";
 
 const EditReceiptionist = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const token=localStorage.getItem('token')
+  const decoded=jwtDecode(token)
+  const role=decoded.role;
+  console.log(role)
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -152,7 +157,7 @@ const EditReceiptionist = () => {
       });
 
       toast.success("Receiptionist updated successfully!");
-      navigate("/admin/reception-management");
+      navigate(`/${role}/reception-management`);
     } catch (error) {
       console.error("Error updating Receiptionist:", error.response?.data || error);
       toast.error("Failed to update Receiptionist profile.");

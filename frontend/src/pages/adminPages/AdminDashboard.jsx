@@ -8,11 +8,20 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import DiseaseSummary from "../../components/DiseaseSummary";
 import Statement from "../Statement";
+import { jwtDecode } from "jwt-decode";
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState("");
 
   useEffect(() => {
+    // Get user role from token
+    const token = localStorage.getItem("token");
+    if (token) {
+      const decoded = jwtDecode(token);
+      setUserRole(decoded.role);
+    }
+    
     // Simulate data loading
     setTimeout(() => setLoading(false), 2000);
   }, []);
@@ -25,14 +34,20 @@ const AdminDashboard = () => {
           {loading ? <Skeleton height={100} /> : <StatisticsCards />}
           {loading ? <Skeleton height={200} /> : <PatientsStatistics />}
           {loading ? <Skeleton height={300} /> : <AppointmentsList />}
-          {loading ? <Skeleton height={200} /> : <Statement />}
+          {userRole !== "receptionist" && (
+            loading ? <Skeleton height={200} /> : <Statement />
+          )}
         </div>
 
         {/* Right Panel: Billing Table and Patients Summary */}
         <div className="space-y-6">
           {loading ? <Skeleton height={400} /> : <BillingTable />}
-          {loading ? <Skeleton height={250} /> : <PatientsSummary />}
-          {loading ? <Skeleton height={250} /> : <DiseaseSummary />}
+          {userRole !== "receptionist" && (
+            <>
+              {loading ? <Skeleton height={250} /> : <PatientsSummary />}
+              {loading ? <Skeleton height={250} /> : <DiseaseSummary />}
+            </>
+          )}
         </div>
       </div>
     </div>

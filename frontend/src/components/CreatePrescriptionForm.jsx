@@ -18,6 +18,8 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
   const [newDescriptionValue, setNewDescriptionValue] = useState("");
   const [selectedDiseases, setSelectedDiseases] = useState([]); // New state for multiple diseases
   const [selectedDescriptions, setSelectedDescriptions] = useState([]); // New state for multiple descriptions
+  const [diseaseInputValue, setDiseaseInputValue] = useState("");
+  const [descriptionInputValue, setDescriptionInputValue] = useState("");
 
   // State to manage form values
   const [formValues, setFormValues] = useState({
@@ -492,8 +494,15 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
             <Autocomplete
               freeSolo
               options={diseases.map(disease => disease.name)}
-              value=""
-              onChange={handleDiseaseChange}
+              value={diseaseInputValue}
+              onChange={(event, newValue) => {
+                handleDiseaseChange(event, newValue);
+                setDiseaseInputValue(''); // Reset input value after selection
+              }}
+              inputValue={diseaseInputValue}
+              onInputChange={(event, newValue) => {
+                setDiseaseInputValue(newValue); // Update input value as user types
+              }}
               getOptionLabel={(option) => {
                 if (typeof option === 'string') return option;
                 return option.name || '';
@@ -512,6 +521,7 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
                           e.stopPropagation();
                           setNewDiseaseValue(option);
                           setIsDiseaseModalOpen(true);
+                          setDiseaseInputValue(''); // Reset input value after clicking create new
                         }}
                         sx={{ ml: 1 }}
                       >
@@ -541,6 +551,7 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
               onClick={() => {
                 setNewDiseaseValue("");
                 setIsDiseaseModalOpen(true);
+                setDiseaseInputValue(''); // Reset input value after clicking create new
               }}
               sx={{ minWidth: '120px' }}
             >
@@ -577,8 +588,15 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
             <Autocomplete
               freeSolo
               options={descriptions.map(desc => desc.description)}
-              value=""
-              onChange={handleDescriptionChange}
+              value={descriptionInputValue}
+              onChange={(event, newValue) => {
+                handleDescriptionChange(event, newValue);
+                setDescriptionInputValue(''); // Reset input value after selection
+              }}
+              inputValue={descriptionInputValue}
+              onInputChange={(event, newValue) => {
+                setDescriptionInputValue(newValue); // Update input value as user types
+              }}
               getOptionLabel={(option) => {
                 if (typeof option === 'string') return option;
                 return option.description || '';
@@ -597,6 +615,7 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
                           e.stopPropagation();
                           setNewDescriptionValue(option);
                           setIsDescriptionModalOpen(true);
+                          setDescriptionInputValue(''); // Reset input value after clicking create new
                         }}
                         sx={{ ml: 1 }}
                       >
@@ -626,6 +645,7 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
               onClick={() => {
                 setNewDescriptionValue("");
                 setIsDescriptionModalOpen(true);
+                setDescriptionInputValue(''); // Reset input value after clicking create new
               }}
               sx={{ minWidth: '120px' }}
             >

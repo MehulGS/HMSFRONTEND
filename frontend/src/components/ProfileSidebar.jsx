@@ -19,7 +19,7 @@ const ProfileSidebar = ({ activeSection, setActiveSection }) => {
 
         // Check if the profileImage is a relative path and construct the full URL
         const imageUrl = profileImage
-          ? `https://b-hms.onrender.com/${profileImage}`
+          ? `https://46tb8kl9-8000.inc1.devtunnels.mse}`
           : "";
 
         setUserData({

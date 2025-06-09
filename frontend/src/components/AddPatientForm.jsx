@@ -25,7 +25,7 @@ const AddPatientForm = () => {
   });
 
   const [errors, setErrors] = useState({});
-  const requiredFields = ['firstName', 'lastName', 'dateOfBirth', 'phoneNumber', 'gender', 'age'];
+  const requiredFields = ['firstName', 'lastName', 'phoneNumber', 'gender'];
 
   const navigate = useNavigate();
   const [hospitalList, setHospitalList] = useState([]);
@@ -245,7 +245,6 @@ const AddPatientForm = () => {
                 label="Date of Birth"
                 value={formData.dateOfBirth}
                 onChange={handleInputChange}
-                required={true}
                 error={errors.dateOfBirth}
               />
               <InputField
@@ -270,7 +269,6 @@ const AddPatientForm = () => {
                 label="Age"
                 value={formData.age}
                 onChange={handleInputChange}
-                required={true}
                 error={errors.age}
                 placeholder="Auto-calculated from date of birth"
               />
