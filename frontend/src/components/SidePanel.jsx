@@ -21,7 +21,7 @@ const SidePanel = () => {
           className="w-[500px] h-[400px] mx-auto bg-white"
         />
         <h2 className="text-4xl font-bold mt-4 text-white">
-          Shanti Devi Health Care Hospital
+          Shanti Devi Health Care
         </h2>
         <p className="text-gray-200 mt-2 font-semibold">
           G.F Shop No.: 3, Sun South Trade, Opp. Bopal Police Station, Gala Gym Khana Road,
