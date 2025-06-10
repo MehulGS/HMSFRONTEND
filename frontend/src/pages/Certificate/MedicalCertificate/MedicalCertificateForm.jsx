@@ -93,7 +93,7 @@ const MedicalCertificateForm = () => {
     e.preventDefault()
     
     // Validate form
-    if (!formData.patientName || !formData.patientAge || !formData.patientGender || 
+    if (!formData.patientName  || !formData.patientGender || 
         !formData.doctorName || !formData.diseaseName || !formData.reason) {
       toast.error('Please fill in all required fields')
       return
@@ -188,7 +188,6 @@ const MedicalCertificateForm = () => {
                 value={formData.patientAge}
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                required
               />
             </div>
 
