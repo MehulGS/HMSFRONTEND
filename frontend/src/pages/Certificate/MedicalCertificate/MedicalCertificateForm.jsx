@@ -106,7 +106,6 @@ const MedicalCertificateForm = () => {
 
       const certificateData = {
         patientName: `${selectedPatient.firstName} ${selectedPatient.lastName}`,
-        patientAge: selectedPatient.age,
         patientGender: selectedPatient.gender,
         doctorName: `Dr. ${selectedDoctor.firstName} ${selectedDoctor.lastName}`,
         diseaseName: selectedDisease.name,
