@@ -36,7 +36,17 @@ const SickCertificateForm = () => {
     const fetchDoctors = async () => {
       try {
         const response = await api.get('/users/doctors')
-        setDoctors(response.data || [])
+        const fetchedDoctors = response.data || []
+        setDoctors(fetchedDoctors)
+
+        // Set the latest doctor as default if there are doctors available
+        if (fetchedDoctors && fetchedDoctors.length > 0) {
+          // Sort doctors by creation date (assuming there's a createdAt field)
+          const sortedDoctors = [...fetchedDoctors].sort((a, b) => 
+            new Date(b.createdAt) - new Date(a.createdAt)
+          )
+          setSelectedDoctor(sortedDoctors[0]._id)
+        }
       } catch (error) {
         console.error('Error fetching doctors:', error)
         setDoctors([])

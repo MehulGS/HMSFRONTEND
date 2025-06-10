@@ -38,7 +38,15 @@ const MedicalCertificateForm = () => {
     const fetchDoctors = async () => {
       try {
         const response = await api.get('/users/doctors')
-        setDoctors(response.data || [])
+        const sortedDoctors = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        setDoctors(sortedDoctors || [])
+        // Set the latest doctor as default
+        if (sortedDoctors.length > 0) {
+          setFormData(prev => ({
+            ...prev,
+            doctorName: sortedDoctors[0]._id
+          }))
+        }
       } catch (error) {
         console.error('Error fetching doctors:', error)
         setDoctors([])

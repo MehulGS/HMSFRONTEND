@@ -39,7 +39,15 @@ const FitnessCertificateForm = () => {
     const fetchDoctors = async () => {
       try {
         const response = await api.get('/users/doctors')
-        setDoctors(response.data || [])
+        const sortedDoctors = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        setDoctors(sortedDoctors || [])
+        // Set the latest doctor as default
+        if (sortedDoctors.length > 0) {
+          setFormData(prev => ({
+            ...prev,
+            doctorName: sortedDoctors[0]._id
+          }))
+        }
       } catch (error) {
         console.error('Error fetching doctors:', error)
         setDoctors([])
@@ -234,8 +242,9 @@ const FitnessCertificateForm = () => {
                 name="patientGender"
                 value={formData.patientGender}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors bg-gray-100"
                 required
+                disabled
               >
                 <option value="">Select Gender</option>
                 <option value="Male">Male</option>
