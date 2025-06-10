@@ -376,7 +376,7 @@ const CreateBill = () => {
           {
             name: "paymentType",
             type: "select",
-            options: ["Cash", "Online"],
+            options: ["Cash", "Online","FOC"],
           },
           { label: "Bill Date", name: "billDate", type: "date" },
           { label: "Bill Time", name: "billTime", type: "time" },
