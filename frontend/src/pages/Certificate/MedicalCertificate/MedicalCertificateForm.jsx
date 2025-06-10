@@ -76,13 +76,12 @@ const MedicalCertificateForm = () => {
       [name]: value
     }))
 
-    // If patient is selected, update age and gender
+    // If patient is selected, update only gender
     if (name === 'patientName') {
       const selectedPatient = patients.find(p => p._id === value)
       if (selectedPatient) {
         setFormData(prev => ({
           ...prev,
-          patientAge: selectedPatient.age || '',
           patientGender: selectedPatient.gender || ''
         }))
       }
