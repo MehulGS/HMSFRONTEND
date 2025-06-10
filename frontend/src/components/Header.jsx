@@ -22,7 +22,7 @@ const initializeSocket = () => {
   if (!token) return null;
 
   // Create socket connection with configuration
-  socket = io("https://b-hms.onrender.com/", {
+  socket = io("https://b-hms.onrender.com.devtunnels.ms.devtunnels.ms/", {
     withCredentials: true,
     transports: ["websocket"],
     reconnection: true,
@@ -378,7 +378,7 @@ const Header = ({ activeMenu, onSearch, toggleSidebar }) => {
             <img
               src={
                 profileImage ||
-                "https://b-hms.onrender.com/default-profile.png"
+                "https://b-hms.onrender.com.devtunnels.ms.devtunnels.ms/default-profile.png"
               }
               alt="user"
               className="w-10 h-10 rounded-full"

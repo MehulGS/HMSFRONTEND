@@ -17,7 +17,7 @@ const DoctorDetailsDrawer = ({ open, onClose, doctor }) => {
           <img
             src={
               doctor?.profileImage
-                ? `https://b-hms.onrender.com.devtunnels.msileImage}`
+                ? `https://b-hms.onrender.com.devtunnels.ms.devtunnels.msileImage}`
                 : "https://via.placeholder.com/100"
             }
             alt={doctor?.firstName}
