@@ -307,7 +307,6 @@ const CreatePrescriptionInvoice = () => {
   const validateForm = () => {
     let formErrors = {};
     if (!formValues.patientName) formErrors.patientName = "Patient name is required.";
-    if (!formValues.patientAge || formValues.patientAge <= 0) formErrors.patientAge = "Valid age is required.";
     if (!formValues.patientGender) formErrors.patientGender = "Gender is required.";
     if (formValues.diseases.length === 0) formErrors.diseases = "At least one disease is required.";
     if (formValues.descriptions.length === 0) formErrors.descriptions = "At least one description is required.";
