@@ -81,7 +81,20 @@ const App = () => {
             )
           }
         />
-        
+        <Route
+          path="/patient/*"
+          element={
+            isAuthenticated ? (
+              <ProtectedRoute roles={["patient"]}>
+                <BreadcrumbProvider>
+                  <PatientRoutes onLogout={handleLogout} />
+                </BreadcrumbProvider>
+              </ProtectedRoute>
+            ) : (
+              <Navigate to="/hms/auth" replace />
+            )
+          }
+        />
         <Route
           path="/receptionist/*"
           element={

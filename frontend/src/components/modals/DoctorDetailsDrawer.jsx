@@ -17,7 +17,7 @@ const DoctorDetailsDrawer = ({ open, onClose, doctor }) => {
           <img
             src={
               doctor?.profileImage
-                ? `https://b-hms.onrender.com.devtunnels.ms.devtunnels.msileImage}`
+                ? `https://46tb8kl9-8000.inc1.devtunnels.ms}`
                 : "https://via.placeholder.com/100"
             }
             alt={doctor?.firstName}
@@ -114,7 +114,7 @@ const DoctorDetailsDrawer = ({ open, onClose, doctor }) => {
             <img
               src={
                 doctor?.signatureImage
-                  ? `https://b-hms.onrender.com/${doctor.signatureImage}`
+                  ? `https://46tb8kl9-8000.inc1.devtunnels.ms/${doctor.signatureImage}`
                   : "https://via.placeholder.com/100x50"
               }
               alt="Doctor Signature"
