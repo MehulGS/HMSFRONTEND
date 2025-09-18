@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { AiOutlineCamera, AiOutlineClockCircle } from "react-icons/ai";
+import { AiOutlineCamera, AiOutlineClockCircle, AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { FiUpload } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -345,25 +345,45 @@ const InputField = ({
   placeholder = "",
   value,
   onChange,
-}) => (
-  <div className="relative mb-4">
-    <input
-      type={type}
-      id={id}
-      name={id}
-      className="peer w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none"
-      placeholder={placeholder || `Enter ${label}`}
-      value={value}
-      onChange={onChange}
-    />
-    <label
-      htmlFor={id}
-      className="absolute left-3 -top-2.5 px-1 bg-white text-sm font-medium text-[#030229] peer-focus:-top-2.5 peer-focus:left-3 transition-all duration-200"
-    >
-      {label}
-    </label>
-  </div>
-);
+}) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = type === "password";
+  const inputType = isPassword && showPassword ? "text" : type;
+
+  return (
+    <div className="relative mb-4">
+      <input
+        type={inputType}
+        id={id}
+        name={id}
+        className="peer w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none pr-10"
+        placeholder={placeholder || `Enter ${label}`}
+        value={value}
+        onChange={onChange}
+      />
+      {isPassword && (
+        <button
+          type="button"
+          aria-label={showPassword ? "Hide password" : "Show password"}
+          onClick={() => setShowPassword((prev) => !prev)}
+          className="absolute right-3 top-1/3 -translate-y-1/2 text-gray-500"
+        >
+          {showPassword ? (
+            <AiOutlineEyeInvisible className="text-xl" />
+          ) : (
+            <AiOutlineEye className="text-xl" />
+          )}
+        </button>
+      )}
+      <label
+        htmlFor={id}
+        className="absolute left-3 -top-2.5 px-1 bg-white text-sm font-medium text-[#030229] peer-focus:-top-2.5 peer-focus:left-3 transition-all duration-200"
+      >
+        {label}
+      </label>
+    </div>
+  );
+};
 
 // SelectField component
 const SelectField = ({ id, label, options, value, onChange }) => (
