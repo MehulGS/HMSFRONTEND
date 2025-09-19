@@ -101,6 +101,15 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
     fetchMedicines();
   }, []);
 
+  // keep description shape consistent across the app
+  const normalizeDescription = (item) => {
+    if (!item) return null;
+    if (typeof item === "string") return { _id: item, description: item };
+    const description = item.description ?? item.name ?? "";
+    const _id = item._id ?? item.id ?? description;
+    return { _id, description };
+  };
+
   useEffect(() => {
     const fetchDiseases = async () => {
       try {
@@ -116,7 +125,10 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
     const fetchDescriptions = async () => {
       try {
         const response = await api.get("/description");
-        const descriptionsArray = response.data || [];
+        const raw = response.data?.data ?? response.data ?? [];
+        const descriptionsArray = (Array.isArray(raw) ? raw : [])
+          .map(normalizeDescription)
+          .filter(Boolean);
         setDescriptions(descriptionsArray);
       } catch (error) {
         console.error("Error fetching descriptions:", error);
@@ -277,7 +289,8 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
   const handleCreateDescription = async () => {
     try {
       const response = await api.post("/description", { description: newDescriptionValue });
-      const newDescription = response.data.description || response.data;
+      const raw = response.data?.description ?? response.data;
+      const newDescription = normalizeDescription(raw);
       if (newDescription) {
         setDescriptions(prev => [...prev, newDescription]);
         setSelectedDescriptions(prev => [...prev, newDescription]);
@@ -567,7 +580,7 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
           <div className="mt-2 flex flex-wrap gap-2">
             {selectedDiseases.map((disease) => (
               <div
-                key={disease._id}
+                key={disease._id || disease.name}
                 className="flex items-center gap-1 bg-blue-100 text-blue-800 px-3 py-1 rounded-full"
               >
                 <span>{disease.name}</span>
@@ -587,10 +600,11 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
           <div className="flex gap-2 mb-2">
             <Autocomplete
               freeSolo
-              options={descriptions.map(desc => desc.description)}
-              value={descriptionInputValue}
+              options={descriptions}
+              value={null}
               onChange={(event, newValue) => {
-                handleDescriptionChange(event, newValue);
+                const label = typeof newValue === 'string' ? newValue : newValue?.description;
+                handleDescriptionChange(event, label);
                 setDescriptionInputValue(''); // Reset input value after selection
               }}
               inputValue={descriptionInputValue}
@@ -598,14 +612,16 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
                 setDescriptionInputValue(newValue); // Update input value as user types
               }}
               getOptionLabel={(option) => {
+                if (!option) return '';
                 if (typeof option === 'string') return option;
                 return option.description || '';
               }}
               renderOption={(props, option) => {
-                const isNew = !descriptions.find(d => d.description === option);
+                const label = typeof option === 'string' ? option : option?.description || '';
+                const isNew = !descriptions.find(d => d.description === label);
                 return (
                   <li {...props} className="flex justify-between items-center p-2">
-                    <span>{option}</span>
+                    <span>{label}</span>
                     {isNew && (
                       <Button
                         size="small"
@@ -613,7 +629,7 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
                         color="primary"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setNewDescriptionValue(option);
+                          setNewDescriptionValue(label);
                           setIsDescriptionModalOpen(true);
                           setDescriptionInputValue(''); // Reset input value after clicking create new
                         }}
@@ -661,7 +677,7 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
           <div className="mt-2 flex flex-wrap gap-2">
             {selectedDescriptions.map((description) => (
               <div
-                key={description._id}
+                key={description._id || description.description}
                 className="flex items-center gap-1 bg-green-100 text-green-800 px-3 py-1 rounded-full"
               >
                 <span>{description.description}</span>
@@ -725,7 +741,7 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
 
       {formValues.medicines.map((medicine, index) => (
         <div
-          key={index}
+          key={`${index}-${medicine.medicineName || 'medicine'}`}
           className="grid grid-cols-[2fr_1fr_1fr_2fr_auto] gap-2 items-center mb-4"
         >
           <div className="relative">
@@ -863,7 +879,7 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
             className="mb-4"
             autoFocus
           />
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 mt-2">
             <Button onClick={() => setIsDiseaseModalOpen(false)}>Cancel</Button>
             <Button 
               variant="contained" 
@@ -894,7 +910,7 @@ const CreatePrescriptionForm = ({ onFormUpdate }) => {
             rows={3}
             autoFocus
           />
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 mt-2">
             <Button onClick={() => setIsDescriptionModalOpen(false)}>Cancel</Button>
             <Button 
               variant="contained" 

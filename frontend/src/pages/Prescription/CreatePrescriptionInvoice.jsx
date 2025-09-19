@@ -875,6 +875,7 @@ const CreatePrescriptionInvoice = () => {
               variant="contained" 
               onClick={handleCreateDisease}
               disabled={!newDiseaseValue.trim()}
+              className="!mt-2"
             >
               Create Disease
             </Button>
@@ -900,7 +901,7 @@ const CreatePrescriptionInvoice = () => {
             rows={3}
             autoFocus
           />
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 mt-2">
             <Button onClick={() => setIsDescriptionModalOpen(false)}>Cancel</Button>
             <Button 
               variant="contained" 
