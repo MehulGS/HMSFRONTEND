@@ -12,6 +12,7 @@ import { ReactComponent as BilingIcon } from "../assets/images/Billing.svg";
 import { ReactComponent as CertiFicateIcon } from "../assets/images/certificateicon.svg";
 import { ReactComponent as ChatIcon } from "../assets/images/Chaticon.svg";
 import { ReactComponent as TeleAccessIcon } from "../assets/images/TeleAccess.svg";
+import { ReactComponent as CalculatorIcon } from "../assets/images/CalculatorIcon.svg";
 import { ReactComponent as PrescriptionIcon } from "../assets/images/Prescriptionicon.svg";
 import appointment from "../assets/images/appointment.png";
 import toast from "react-hot-toast";
@@ -101,6 +102,11 @@ const Sidebar = ({ role, onLogout, isSidebarOpen, setIsSidebarOpen }) => {
         label: "Today Appointments",
         icon: TeleAccessIcon,
         path: `/${role}/today-appointments`,
+      },
+      {
+        label:"BMI Calculator",
+        icon: CalculatorIcon,
+        path: `/${role}/bmi-calculator`,
       },
       {
         label: "Reception Management",
