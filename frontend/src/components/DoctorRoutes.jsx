@@ -47,6 +47,8 @@ import MedicalCertificate from "../pages/Certificate/MedicalCertificate/MedicalC
 import FitnessCertificateForm from "../pages/Certificate/FitnessCertificate/FitnessCertificateForm";
 import FitnessCertificate from "../pages/Certificate/FitnessCertificate/FitnessCertificate";
 import CreatePrescriptionInvoice from "../pages/Prescription/CreatePrescriptionInvoice";
+import BMICalculator from "../pages/doctorPages/BMICalculator";
+import BMICalculatorForm from "../pages/doctorPages/BMICalculatorForm";
 
 const DoctorRoutes = ({ onLogout }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -113,6 +115,8 @@ const DoctorRoutes = ({ onLogout }) => {
               <Route path="/diseases" element={<Diseases />} />
               <Route path="/discription" element={<Description />} />
               <Route path="/today-appointments" element={<AppointmentPage />} />
+              <Route path="/bmi-calculator" element={<BMICalculator />} />
+              <Route path="/bmi-calculator/new" element={<BMICalculatorForm />} />
               <Route path="/invoice/:billId" element={<Invoice />} />
               <Route
                 path="/prescription/:billId"

@@ -43,7 +43,6 @@ const DoctorManagement = () => {
         setLoading(false);
       }
     };
-
     fetchDoctors();
   }, []);
 

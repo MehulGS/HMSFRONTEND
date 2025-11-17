@@ -606,6 +606,7 @@ const CreatePrescriptionInvoice = () => {
               value=""
               onChange={handleDescriptionChange}
               getOptionLabel={(option) => {
+                if (!option) return '';
                 if (typeof option === 'string') return option;
                 return option.description || '';
               }}

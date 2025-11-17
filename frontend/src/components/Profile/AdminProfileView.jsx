@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FaEdit } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import api from "../../api/api";
+import {jwtDecode} from "jwt-decode";
 
 const   AdminProfileView = ({ onEdit }) => {
   const [profileData, setProfileData] = useState({
@@ -19,6 +20,9 @@ const   AdminProfileView = ({ onEdit }) => {
     state: "",
     country: "",
   });
+  const token=localStorage.getItem("token");
+  const decoded=jwtDecode(token);
+  const role=decoded.role;
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -38,7 +42,7 @@ const   AdminProfileView = ({ onEdit }) => {
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-xl md:text-2xl font-semibold">Profile</h3>
         <Link
-          to="/admin/edit-profile"
+          to={`/${role}/edit-profile`}
           className="border text-white bg-customBlue px-3 md:px-4 py-2 rounded-xl font-medium flex items-center"
         >
           <FaEdit className="mr-2" />

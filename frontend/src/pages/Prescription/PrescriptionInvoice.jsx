@@ -208,12 +208,20 @@ const PrescriptionInvoice = () => {
                           prescriptionData?.patientDetails?.phoneNumber
                         )}
                       </p>
-                      <p className="col-span-2">
+                      <p>
                         <strong>ADDRESS:</strong>{' '}
                         {loading ? (
                           <Skeleton width={200} />
                         ) : (
                           prescriptionData?.patientDetails?.address
+                        )}
+                      </p>
+                      <p>
+                        <strong>BMI:</strong>{' '}
+                        {loading ? (
+                          <Skeleton width={200} />
+                        ) : (
+                          prescriptionData?.patientDetails?.bmi
                         )}
                       </p>
                     </div>

@@ -12,8 +12,9 @@ const AddPatientForm = () => {
     firstName: "",
     lastName: "",
     dateOfBirth: "",
-    heigth: "",
-    weigth: "",
+    height: "",
+    weight: "",
+    bmi: "",
     bloodGroup: "",
     phoneNumber: "",
     gender: "",
@@ -81,6 +82,21 @@ const AddPatientForm = () => {
     return age.toString();
   };
 
+  const calculateBmi = (height, weight) => {
+    const heightNum = parseFloat(height);
+    const weightNum = parseFloat(weight);
+
+    if (!heightNum || !weightNum) return "";
+
+    const heightInMeters = heightNum / 100;
+    if (!heightInMeters) return "";
+
+    const bmiValue = weightNum / (heightInMeters * heightInMeters);
+    if (!isFinite(bmiValue)) return "";
+
+    return bmiValue.toFixed(2);
+  };
+
   const validateField = (name, value) => {
     if (requiredFields.includes(name) && !value) {
       return `${name.charAt(0).toUpperCase() + name.slice(1)} is required`;
@@ -108,6 +124,18 @@ const AddPatientForm = () => {
         [name]: value,
         age: calculatedAge
       }));
+    } else if (name === "height" || name === "weight") {
+      setFormData(prev => {
+        const updated = {
+          ...prev,
+          [name]: value,
+        };
+
+        return {
+          ...updated,
+          bmi: calculateBmi(updated.height, updated.weight),
+        };
+      });
     } else {
       setFormData(prev => ({
         ...prev,
@@ -287,16 +315,23 @@ const AddPatientForm = () => {
                 placeholder="Enter patient's drug history"
               />
               <InputField
-                id="heigth"
+                id="height"
                 label="Height (cm)"
-                value={formData.heigth}
+                value={formData.height}
                 onChange={handleInputChange}
               />
               <InputField
-                id="weigth"
+                id="weight"
                 label="Weight (kg)"
-                value={formData.weigth}
+                value={formData.weight}
                 onChange={handleInputChange}
+              />
+              <InputField
+                id="bmi"
+                label="BMI"
+                value={formData.bmi}
+                onChange={handleInputChange}
+                disabled={true}
               />
               <InputField
                 id="bloodGroup"

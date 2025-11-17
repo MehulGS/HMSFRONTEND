@@ -8,6 +8,22 @@ import "react-loading-skeleton/dist/skeleton.css";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
 
+const getBmiBadgeClasses = (bmi) => {
+  const value = parseFloat(bmi);
+  if (!value || !isFinite(value)) {
+    // Neutral badge for missing/invalid BMI
+    return "bg-gray-100 text-gray-600";
+  }
+
+  // Consider BMI > 25 as high (overweight/obese) and show in red
+  if (value > 25) {
+    return "bg-red-100 text-red-600";
+  }
+
+  // Normal BMI keeps existing blue styling
+  return "bg-blue-100 text-blue-600";
+};
+
 const PatientManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [patients, setPatients] = useState([]);
@@ -151,6 +167,7 @@ const PatientManagement = () => {
               <th className="px-2 md:px-6 py-3 text-left font-semibold text-sm md:text-base">Phone Number</th>
               <th className="px-2 md:px-6 py-3 text-left font-semibold text-sm md:text-base">Age</th>
               <th className="px-2 md:px-6 py-3 text-left font-semibold text-sm md:text-base">Blood Group</th>
+              <th className="px-2 md:px-6 py-3 text-left font-semibold text-sm md:text-base">BMI</th>
               <th className="px-2 md:px-6 py-3 text-center font-semibold text-sm md:text-base">Action</th>
             </tr>
           </thead>
@@ -158,7 +175,7 @@ const PatientManagement = () => {
             {loading ? (
               [...Array(5)].map((_, index) => (
                 <tr key={index}>
-                  {["80", "120", "80", "120", "60", "80", "120"].map(
+                  {["80", "120", "80", "120", "60", "80", "60", "120"].map(
                     (width, i) => (
                       <td key={i} className="px-2 py-3">
                         <Skeleton width={width} height={20} />
@@ -182,6 +199,15 @@ const PatientManagement = () => {
                   <td className="px-2 py-3 text-[#4F4F4F]">
                     <span className="bg-blue-100 text-blue-600 px-2 md:px-3 py-1 rounded-full text-sm">
                       {patient.bloodGroup || "N/A"}
+                    </span>
+                  </td>
+                  <td className="px-2 py-3 text-[#4F4F4F]">
+                    <span
+                      className={`${getBmiBadgeClasses(
+                        patient.bmi
+                      )} px-2 md:px-3 py-1 rounded-full text-sm`}
+                    >
+                      {patient.bmi || "N/A"}
                     </span>
                   </td>
                   <td className="px-2 py-3 text-xl text-center">

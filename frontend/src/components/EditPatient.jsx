@@ -6,6 +6,39 @@ import toast from "react-hot-toast";
 import { jwtDecode } from "jwt-decode";
 import api from "../api/api";
 
+const calculateAge = (dateOfBirth) => {
+  if (!dateOfBirth) return "";
+
+  const today = new Date();
+  const birthDate = new Date(dateOfBirth);
+
+  if (isNaN(birthDate.getTime())) return "";
+
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+
+  return age.toString();
+};
+
+const calculateBmi = (height, weight) => {
+  const heightNum = parseFloat(height);
+  const weightNum = parseFloat(weight);
+
+  if (!heightNum || !weightNum) return "";
+
+  const heightInMeters = heightNum / 100;
+  if (!heightInMeters) return "";
+
+  const bmiValue = weightNum / (heightInMeters * heightInMeters);
+  if (!isFinite(bmiValue)) return "";
+
+  return bmiValue.toFixed(2);
+};
+
 const EditPatient = () => {
   const [formData, setFormData] = useState({
     firstName: "",
@@ -13,6 +46,7 @@ const EditPatient = () => {
     dateOfBirth: "",
     height: "",
     weight: "",
+    bmi: "",
     bloodGroup: "",
     phoneNumber: "",
     gender: "",
@@ -35,9 +69,31 @@ const EditPatient = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
+
+    setFormData((prev) => {
+      let updated = {
+        ...prev,
+        [name]: value,
+      };
+
+      if (name === "dateOfBirth") {
+        updated = {
+          ...updated,
+          age: calculateAge(value),
+        };
+      }
+
+      if (name === "height" || name === "weight") {
+        updated = {
+          ...updated,
+          bmi: calculateBmi(
+            name === "height" ? value : updated.height,
+            name === "weight" ? value : updated.weight
+          ),
+        };
+      }
+
+      return updated;
     });
 
     // Handle country change and populate states
@@ -85,17 +141,30 @@ const EditPatient = () => {
             return isoDate ? new Date(isoDate).toISOString().split("T")[0] : "";
           };
 
+          const formattedDob = formatDateForInput(patient.dateOfBirth) || "";
+
+          const computedAge =
+            patient.age !== undefined && patient.age !== null && patient.age !== ""
+              ? patient.age.toString()
+              : calculateAge(formattedDob);
+
+          const computedBmi =
+            patient.bmi !== undefined && patient.bmi !== null && patient.bmi !== ""
+              ? patient.bmi.toString()
+              : calculateBmi(patient.height, patient.weight);
+
           setFormData({
             firstName: patient.firstName || "",
             lastName: patient.lastName || "",
-            dateOfBirth: formatDateForInput(patient.dateOfBirth) || "",
+            dateOfBirth: formattedDob,
             height: patient.height || "",
             weight: patient.weight || "",
+            bmi: computedBmi,
             bloodGroup: patient.bloodGroup || "",
             phoneNumber: patient.phoneNumber || "",
             gender: patient.gender || "",
             address: patient.address || "",
-            age: patient.age || "",
+            age: computedAge,
             email: patient.email || "",
             adminhospital: patient.adminhospital?._id || "",
             patientId: patient.patientUniqueId || "",
@@ -203,6 +272,13 @@ const EditPatient = () => {
                 label="Weight (kg)"
                 value={formData.weight}
                 onChange={handleInputChange}
+              />
+              <InputField
+                id="bmi"
+                label="BMI"
+                value={formData.bmi}
+                onChange={handleInputChange}
+                disabled
               />
               <InputField
                 id="bloodGroup"

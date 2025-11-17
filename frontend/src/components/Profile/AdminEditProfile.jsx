@@ -101,7 +101,7 @@ const AdminEditProfile = () => {
         },
       });
       toast.success("Profile updated successfully!");
-      navigate("/admin");
+      navigate(-1);
     } catch (error) {
       toast.error("Error Updating Profile");
     }
