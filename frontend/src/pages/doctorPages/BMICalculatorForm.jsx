@@ -1,87 +1,60 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import api from "../../api/api";
 
 const BMICalculatorForm = () => {
-  const [patients, setPatients] = useState([]);
-  const [selectedPatientId, setSelectedPatientId] = useState("");
+  const [name, setName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [age, setAge] = useState("");
+  const [bloodGroup, setBloodGroup] = useState("");
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
   const [bmiPreview, setBmiPreview] = useState("");
   const [statusPreview, setStatusPreview] = useState("");
-  const [editingId, setEditingId] = useState(null);
-  const [patientSearch, setPatientSearch] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [dietPlan, setDietPlan] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchPatients = async () => {
-      try {
-        const response = await api.get("/users/patients");
-        setPatients(response.data || []);
-      } catch (error) {
-        setPatients([]);
-      }
-    };
-
-    fetchPatients();
+    // Form starts empty for new BMI creation.
   }, []);
 
-  const getId = (patient) =>
-    patient.id !== undefined && patient.id !== null
-      ? String(patient.id)
-      : patient._id !== undefined && patient._id !== null
-      ? String(patient._id)
-      : "";
-
-  const searchTerm = patientSearch.trim().toLowerCase();
-  const filteredPatients = patients.filter((patient) => {
-    if (!searchTerm) return true;
-    const name = `${patient.firstName || ""} ${patient.lastName || ""}`.trim().toLowerCase();
-    const phoneRaw =
-      patient.phone || patient.mobile || patient.contactNumber || patient.phoneNumber || "";
-    const phone = phoneRaw.toString().toLowerCase();
-    return name.includes(searchTerm) || phone.includes(searchTerm);
-  });
-
-  const selectedPatient = patients.find(
-    (p) => getId(p) === String(selectedPatientId)
-  );
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("bmiEditRecord");
-      if (!raw) return;
-      const record = JSON.parse(raw);
-      if (!record) return;
-
-      setEditingId(record.id || null);
-      setHeight(record.height ? String(record.height) : "");
-      setWeight(record.weight ? String(record.weight) : "");
-      if (record.patientId) {
-        setSelectedPatientId(String(record.patientId));
-      }
-    } catch (error) {}
-  }, []);
-
-  const getDietSuggestion = (bmi) => {
+  const getDietSuggestion = (bmi, manualFallback = false) => {
     const bmiValue = parseFloat(bmi);
     if (!isFinite(bmiValue)) {
       return "Maintain a balanced diet with adequate fruits, vegetables, and water.";
     }
 
+    if (!manualFallback) {
+      // Default short focus text for preview when AI response is not yet available.
+      if (bmiValue < 18.5) {
+        return "Increase calories with protein-rich foods, healthy fats, and frequent small meals.";
+      }
+
+      if (bmiValue >= 18.5 && bmiValue < 25) {
+        return "Balanced meals with whole grains, lean protein, fruits, and regular exercise.";
+      }
+
+      if (bmiValue >= 25 && bmiValue < 30) {
+        return "Cut down on refined carbs and sugar, add salads and lean protein, and stay active.";
+      }
+
+      return "Follow a calorie-controlled, high-fiber diet and avoid fried and processed foods.";
+    }
+
+    // Manual, longer fallback in case backend AI is unavailable.
     if (bmiValue < 18.5) {
-      return "Increase calorie intake with protein-rich foods, healthy fats, and frequent small meals.";
+      return "Your BMI indicates you are underweight. Increase calorie intake with protein-rich foods, healthy fats (nuts, seeds, ghee in moderation), dairy, and frequent small meals. Avoid skipping meals.";
     }
-
     if (bmiValue >= 18.5 && bmiValue < 25) {
-      return "Balanced meals with whole grains, lean protein, fruits, and regular exercise.";
+      return "Your BMI is in the healthy range. Continue a balanced diet with whole grains, seasonal fruits, vegetables, lentils, and regular physical activity for 30–45 minutes most days of the week.";
     }
-
     if (bmiValue >= 25 && bmiValue < 30) {
-      return "Cut down on refined carbs and sugar, add salads and lean protein, and stay active.";
+      return "Your BMI suggests you are overweight. Reduce refined carbohydrates, sugary drinks, and fried foods. Increase salads, fiber-rich vegetables, and lean protein. Aim for at least 30 minutes of brisk walking daily.";
     }
-
-    return "Follow a calorie-controlled, high-fiber diet and avoid fried and processed foods.";
+    return "Your BMI falls in the obese range. Follow a calorie-controlled diet, avoid fried and processed foods, choose steamed/roasted options, and include high-fiber foods. Regular exercise and medical follow-up are strongly recommended.";
   };
 
   useEffect(() => {
@@ -101,9 +74,52 @@ const BMICalculatorForm = () => {
     setStatusPreview(bmiValue >= 25 ? "Overweight" : "Normal");
   }, [height, weight]);
 
-  const handleSubmit = (e) => {
+  const handleGenerateDietPlan = async () => {
+    if (!bmiPreview) return;
+
+    const apiKey = "AIzaSyCOiuJEg3x6RbfEOGNAriIc6EB0EoicyU0";
+    if (!apiKey) {
+      setDietPlan(getDietSuggestion(bmiPreview, true));
+      return;
+    }
+
+    try {
+      setAiLoading(true);
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      
+
+      const prompt = `You are a nutrition expert. Based on the following patient data, generate a concise but practical Indian-style diet plan with meals for breakfast, lunch, snacks and dinner.
+
+Patient details:
+- Age: ${age || "N/A"}
+- BMI: ${bmiPreview}
+- Weight: ${weight || "N/A"} kg
+- Height: ${height || "N/A"} cm
+- Blood group: ${bloodGroup || "N/A"}
+
+Focus on clear bullet points and simple food items commonly available in India. Also include brief lifestyle tips (water intake, exercise). Use short sentences.
+`;
+
+      const result = await model.generateContent(prompt);
+      const response = result?.response?.text?.() || "";
+
+      if (response) {
+        setDietPlan(response);
+      } else {
+        setDietPlan(getDietSuggestion(bmiPreview, true));
+      }
+    } catch (error) {
+      console.error("Failed to generate diet plan from Gemini", error);
+      setDietPlan(getDietSuggestion(bmiPreview, true));
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedPatientId || !height || !weight) return;
+    if (!name || !phoneNumber || !age || !height || !weight || saving) return;
 
     const heightValue = parseFloat(height);
     const weightValue = parseFloat(weight);
@@ -113,38 +129,34 @@ const BMICalculatorForm = () => {
     const bmiValue = weightValue / (heightInMeters * heightInMeters);
     const status = bmiValue >= 25 ? "Overweight" : "Normal";
 
-    const fullName = selectedPatient
-      ? `${selectedPatient.firstName || ""} ${selectedPatient.lastName || ""}`.trim()
-      : "Unknown";
-
-    const newRecord = {
-      id: editingId || Date.now(),
-      patientId: selectedPatientId,
-      name: fullName,
-      height: heightValue.toFixed(1),
-      weight: weightValue.toFixed(1),
-      bmi: bmiValue.toFixed(1),
-      status,
+    const payload = {
+      name,
+      phoneNumber,
+      age: Number(age),
+      height: Number(heightValue.toFixed(1)),
+      weight: Number(weightValue.toFixed(1)),
+      bmi: Number(bmiValue.toFixed(1)),
+      bloodGroup: bloodGroup || undefined,
+      dietPlanResponse: dietPlan || getDietSuggestion(bmiValue.toFixed(1), true),
+      // createdBy / updatedBy will be derived from auth token on backend.
     };
 
     try {
-      const existing = localStorage.getItem("bmiRecords");
-      const parsed = existing ? JSON.parse(existing) : [];
+      setSaving(true);
+      const response = await api.post("/bmi-records/create-record", payload);
+      const createdRecord = response?.data?.data || response?.data;
 
-      let updated;
-      if (editingId) {
-        updated = (Array.isArray(parsed) ? parsed : []).map((r) =>
-          r.id === editingId ? newRecord : r
-        );
+      if (createdRecord) {
+        navigate("/doctor/bmi-diet-plan", { state: { record: createdRecord, dietPlan } });
       } else {
-        updated = [newRecord, ...(Array.isArray(parsed) ? parsed : [])];
+        navigate("/doctor/bmi-calculator");
       }
-
-      localStorage.setItem("bmiRecords", JSON.stringify(updated));
-      localStorage.removeItem("bmiEditRecord");
-    } catch (error) {}
-
-    navigate("/doctor/bmi-calculator");
+    } catch (error) {
+      // Optional: show a toast / message here; for now we just stay on the form.
+      console.error("Failed to create BMI record", error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -152,10 +164,10 @@ const BMICalculatorForm = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-semibold text-gray-800">
-            {editingId ? "Edit BMI Record" : "Calculate BMI"}
+            Calculate BMI
           </h1>
           <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            Select a patient, enter height and weight to calculate BMI and get diet guidance.
+            Enter patient details, height and weight to calculate BMI and get diet guidance.
           </p>
         </div>
         <button
@@ -173,89 +185,58 @@ const BMICalculatorForm = () => {
           onSubmit={handleSubmit}
           className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 bg-white rounded-lg border border-gray-100 p-4 sm:p-5"
         >
-          <div className="md:col-span-2">
+          <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              Patient
+              Patient Name
             </label>
-            <div className="mb-2 flex flex-col sm:flex-row gap-2">
-              <input
-                type="text"
-                value={patientSearch}
-                onChange={(e) => setPatientSearch(e.target.value)}
-                placeholder="Search by name or phone"
-                className="w-full sm:w-1/2 px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-customBlue"
-              />
-            </div>
-            <select
-              value={selectedPatientId}
-              onChange={(e) => setSelectedPatientId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-customBlue bg-white"
-            >
-              <option value="">Select patient</option>
-              {filteredPatients.map((patient) => {
-                const id = getId(patient);
-                const name = `${patient.firstName || ""} ${
-                  patient.lastName || ""
-                }`.trim();
-                const genderLabel = patient.gender ? ` (${patient.gender})` : "";
-                const phone =
-                  patient.phone ||
-                  patient.mobile ||
-                  patient.contactNumber ||
-                  patient.phoneNumber ||
-                  "";
-
-                return (
-                  <option key={id || name || phone} value={id}>
-                    {name || "Unnamed patient"}
-                    {genderLabel}
-                    {phone ? ` - ${phone}` : ""}
-                  </option>
-                );
-              })}
-            </select>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-customBlue"
+              placeholder="Enter patient name"
+            />
           </div>
 
-          {selectedPatient && (
-            <div className="md:col-span-2 mt-2 grid grid-cols-2 sm:grid-cols-3 gap-3 rounded-lg bg-slate-50 border border-slate-100 p-3">
-              <div>
-                <p className="text-[11px] text-gray-500">Age</p>
-                <p className="text-xs font-medium text-gray-800">
-                  {selectedPatient.age !== undefined && selectedPatient.age !== null
-                    ? selectedPatient.age
-                    : "-"}
-                </p>
-              </div>
-              <div>
-                <p className="text-[11px] text-gray-500">Gender</p>
-                <p className="text-xs font-medium text-gray-800">
-                  {selectedPatient.gender || "-"}
-                </p>
-              </div>
-              <div>
-                <p className="text-[11px] text-gray-500">Blood Group</p>
-                <p className="text-xs font-medium text-gray-800">
-                  {selectedPatient.bloodGroup || selectedPatient.blood_group || "-"}
-                </p>
-              </div>
-              <div>
-                <p className="text-[11px] text-gray-500">Height (cm)</p>
-                <p className="text-xs font-medium text-gray-800">
-                  {selectedPatient.height !== undefined && selectedPatient.height !== null
-                    ? selectedPatient.height
-                    : "-"}
-                </p>
-              </div>
-              <div>
-                <p className="text-[11px] text-gray-500">Weight (kg)</p>
-                <p className="text-xs font-medium text-gray-800">
-                  {selectedPatient.weight !== undefined && selectedPatient.weight !== null
-                    ? selectedPatient.weight
-                    : "-"}
-                </p>
-              </div>
-            </div>
-          )}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Phone Number
+            </label>
+            <input
+              type="text"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-customBlue"
+              placeholder="Enter phone number"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Age (years)
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={age}
+              onChange={(e) => setAge(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-customBlue"
+              placeholder="Enter age"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Blood Group
+            </label>
+            <input
+              type="text"
+              value={bloodGroup}
+              onChange={(e) => setBloodGroup(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-customBlue"
+              placeholder="e.g. O+ / B-"
+            />
+          </div>
 
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -284,13 +265,21 @@ const BMICalculatorForm = () => {
               placeholder="Enter weight in kg"
             />
           </div>
-
           <div className="md:col-span-2 flex flex-col sm:flex-row sm:items-center gap-3 mt-2">
             <button
-              type="submit"
-              className="inline-flex justify-center items-center px-4 py-2 bg-customBlue text-white rounded-lg text-sm font-medium hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-customBlue w-full sm:w-auto"
+              type="button"
+              onClick={handleGenerateDietPlan}
+              disabled={aiLoading || !bmiPreview}
+              className="inline-flex justify-center items-center px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600 w-full sm:w-auto disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {editingId ? "Update BMI Record" : "Save & View BMI"}
+              {aiLoading ? "Generating diet..." : "Generate Diet Plan (AI)"}
+            </button>
+            <button
+              type="submit"
+              disabled={saving || !dietPlan}
+              className="inline-flex justify-center items-center px-4 py-2 bg-customBlue text-white rounded-lg text-sm font-medium hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-customBlue w-full sm:w-auto disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {saving ? "Saving..." : "Save & View BMI"}
             </button>
           </div>
         </form>
@@ -321,11 +310,17 @@ const BMICalculatorForm = () => {
               </div>
               <div className="mt-2">
                 <p className="text-xs font-medium text-gray-700 mb-1">
-                  Suggested diet focus
+                  AI-generated diet plan
                 </p>
-                <p className="text-xs text-gray-600 leading-snug">
-                  {getDietSuggestion(bmiPreview)}
-                </p>
+                {dietPlan ? (
+                  <div className="max-h-64 overflow-auto rounded-md border border-gray-200 bg-gray-50 p-2 text-xs text-gray-700 whitespace-pre-wrap leading-snug">
+                    {dietPlan}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-600 leading-snug">
+                    Click "Generate Diet Plan (AI)" to get a personalized diet plan based on this BMI.
+                  </p>
+                )}
               </div>
             </>
           ) : (
