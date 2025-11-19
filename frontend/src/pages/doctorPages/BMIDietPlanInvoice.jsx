@@ -46,45 +46,56 @@ const BMIDietPlanInvoice = () => {
     pages.push(allLines.slice(i, i + ITEMS_PER_PAGE));
   }
 
+  const handleUploadPdf = async () => {
+    const id = record.id || record._id;
+
+    try {
+      if (id) {
+        const element = document.getElementById("bmi-diet-printable");
+        if (element) {
+          const canvas = await html2canvas(element, { scale: 2 });
+          const imgData = canvas.toDataURL("image/png");
+
+          const pdf = new jsPDF("p", "mm", "a4");
+          const pdfWidth = pdf.internal.pageSize.getWidth();
+          const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+          pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+
+          const pdfBlob = pdf.output("blob");
+          const pdfFile = new File([pdfBlob], "diet-plan.pdf", {
+            type: "application/pdf",
+          });
+
+          const formData = new FormData();
+          formData.append("dietPlanPdf", pdfFile, "diet-plan.pdf");
+
+          await api.put(`/bmi-records/update-pdf/${id}`, formData);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to update diet plan PDF on server", error);
+    }
+  };
+
   return (
     <>
-      {/* Print Button - hidden when printing */}
-      <div className="print:hidden mb-4 flex justify-end max-w-3xl mx-auto px-4">
+      {/* Print / Upload Buttons - hidden when printing */}
+      <div className="print:hidden mb-4 flex justify-end gap-3 max-w-3xl mx-auto px-4">
         <button
-          onClick={async () => {
-            const id = record.id || record._id;
+          type="button"
+          onClick={handleUploadPdf}
+          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-xl hover:bg-green-700 transition-colors"
+        >
+          <span>Upload PDF</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            const element = document.getElementById("bmi-diet-printable");
+            if (!element) return;
 
-            try {
-              if (id) {
-                const element = document.getElementById("bmi-diet-printable");
-                if (element) {
-                  const canvas = await html2canvas(element, { scale: 2 });
-                  const imgData = canvas.toDataURL("image/png");
-
-                  const pdf = new jsPDF("p", "mm", "a4");
-                  const pdfWidth = pdf.internal.pageSize.getWidth();
-                  const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-                  pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-
-                  const pdfBlob = pdf.output("blob");
-                  const pdfFile = new File([pdfBlob], "diet-plan.pdf", {
-                    type: "application/pdf",
-                  });
-
-                  const formData = new FormData();
-                  formData.append("dietPlanPdf", pdfFile);
-
-                  await api.put(`/bmi-records/update-record/${id}`, formData, {
-                    headers: { "Content-Type": "multipart/form-data" },
-                  });
-                }
-              }
-            } catch (error) {
-              console.error("Failed to update diet plan PDF on server", error);
-            }
-
-            const printContents = document.getElementById("bmi-diet-printable").innerHTML;
+            const printContents = element.innerHTML;
             const originalContents = document.body.innerHTML;
             document.body.innerHTML = printContents;
             window.print();
